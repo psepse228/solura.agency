@@ -172,6 +172,16 @@
     }
     .nav-cta:active { transform: translateY(0); }
 
+    .lang-toggle {
+      font-family: var(--fd); font-size: 12px; font-weight: 600;
+      padding: 7px 14px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--silver); cursor: pointer; letter-spacing: .04em;
+      transition: color .2s, border-color .2s, background .2s;
+    }
+    .lang-toggle:hover { color: var(--white); border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.04); }
+    .lang-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
     .hamburger span { width: 24px; height: 1.5px; background: var(--white); }
 
@@ -638,18 +648,19 @@
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a class="skip-link" href="#main-content" data-i18n="skip">Skip to main content</a>
   <div class="grid-bg"></div>
   <div class="ambient"></div>
 
   <!-- Mobile -->
   <div class="mob-menu" id="mobMenu">
     <button class="mob-close" onclick="closeMob()" aria-label="Close menu">✕</button>
-    <a href="#services" onclick="closeMob()">Services</a>
-    <a href="#process"  onclick="closeMob()">Process</a>
-    <a href="#portfolio" onclick="closeMob()">Work</a>
-    <a href="#about"    onclick="closeMob()">About</a>
-    <a href="#contact"  onclick="closeMob()">Contact</a>
+    <a href="#services" onclick="closeMob()" data-i18n="nav.services">Services</a>
+    <a href="#process"  onclick="closeMob()" data-i18n="nav.process">Process</a>
+    <a href="#portfolio" onclick="closeMob()" data-i18n="nav.work">Work</a>
+    <a href="#about"    onclick="closeMob()" data-i18n="nav.about">About</a>
+    <a href="#contact"  onclick="closeMob()" data-i18n="nav.contact">Contact</a>
+    <button class="lang-toggle" id="langBtnMob" onclick="toggleLang()" style="margin-top:8px;font-size:16px;padding:10px 28px">RU</button>
   </div>
 
   <!-- NAV -->
@@ -661,13 +672,14 @@
           Solura
         </a>
         <ul class="nav-links">
-          <li><a href="#services">Services</a></li>
-          <li><a href="#process">Process</a></li>
-          <li><a href="#portfolio">Work</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="#services" data-i18n="nav.services">Services</a></li>
+          <li><a href="#process" data-i18n="nav.process">Process</a></li>
+          <li><a href="#portfolio" data-i18n="nav.work">Work</a></li>
+          <li><a href="#about" data-i18n="nav.about">About</a></li>
+          <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
         </ul>
-        <a href="#contact" class="nav-cta">Book a Call</a>
+        <a href="#contact" class="nav-cta" data-i18n="nav.book">Book a Call</a>
+        <button class="lang-toggle" id="langBtn" onclick="toggleLang()" aria-label="Switch language">RU</button>
         <button class="hamburger" onclick="openMob()" aria-label="Open menu" aria-expanded="false" aria-controls="mobMenu"><span></span><span></span><span></span></button>
       </div>
     </div>
@@ -682,33 +694,33 @@
         <div>
           <div class="hero-badge reveal">
             <span class="badge-dot"></span>
-            Now Accepting New Clients — 2026
+            <span data-i18n="hero.badge">Now Accepting New Clients — 2026</span>
           </div>
-          <h1 class="hero-h1 reveal d1">
+          <h1 class="hero-h1 reveal d1" data-i18n="hero.h1">
             Results<br/>that <span class="gtw">last.</span>
           </h1>
-          <p class="hero-sub reveal d2">
+          <p class="hero-sub reveal d2" data-i18n="hero.sub">
             Innovation, Automation, and Growth — All in One Place. We build systems that actually work inside your business.
           </p>
           <div class="hero-actions reveal d3">
             <a href="#contact" class="btn-primary">
-              Book a Consultation
+              <span data-i18n="hero.btn1">Book a Consultation</span>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
-            <a href="#portfolio" class="btn-secondary">Our Work</a>
+            <a href="#portfolio" class="btn-secondary" data-i18n="hero.btn2">Our Work</a>
           </div>
           <div class="hero-stats reveal d4">
             <div class="stat-item">
               <div class="stat-num gt">80%</div>
-              <div class="stat-label">Of repetitive tasks can be automated</div>
+              <div class="stat-label" data-i18n="hero.stat1">Of repetitive tasks can be automated</div>
             </div>
             <div class="stat-item">
               <div class="stat-num gt">20–30%</div>
-              <div class="stat-label">Reduction in operational costs through automation</div>
+              <div class="stat-label" data-i18n="hero.stat2">Reduction in operational costs through automation</div>
             </div>
             <div class="stat-item">
               <div class="stat-num gt">2–3×</div>
-              <div class="stat-label">Productivity increase with AI-powered workflows</div>
+              <div class="stat-label" data-i18n="hero.stat3">Productivity increase with AI-powered workflows</div>
             </div>
           </div>
         </div>
@@ -725,7 +737,7 @@
             </div>
           </div>
           <div class="hv-card hv-c1">
-            <div class="hv-lbl">Tasks Automated</div>
+            <div class="hv-lbl" data-i18n="hero.c1lbl">Tasks Automated</div>
             <div class="hv-val c">12,847</div>
             <div class="hv-bar-row">
               <div class="hv-bar-t"><div class="hv-bar-f"></div></div>
@@ -735,7 +747,7 @@
           <div class="hv-card hv-c2">
             <div class="hv-status">
               <div class="hv-dot"></div>
-              <div class="hv-stxt">AI Agent Running</div>
+              <div class="hv-stxt" data-i18n="hero.c2stxt">AI Agent Running</div>
             </div>
             <div class="hv-tags">
               <span class="hv-tag">n8n</span>
@@ -744,9 +756,9 @@
             </div>
           </div>
           <div class="hv-card hv-c3">
-            <div class="hv-lbl">Efficiency gain</div>
+            <div class="hv-lbl" data-i18n="hero.c3lbl">Efficiency gain</div>
             <div class="hv-val v">3×</div>
-            <div class="hv-sub">avg. across projects</div>
+            <div class="hv-sub" data-i18n="hero.c3sub">avg. across projects</div>
           </div>
         </div>
 
@@ -780,30 +792,30 @@
   <section id="services">
     <div class="container">
       <div class="section-header reveal">
-        <div class="eyebrow">What We Do</div>
-        <h2 class="section-title">Three disciplines.<br/>One integrated approach.</h2>
-        <p class="section-body">We don't offer isolated services. Every engagement combines AI, engineering, and marketing into a unified system built around your business outcomes.</p>
+        <div class="eyebrow" data-i18n="svc.eyebrow">What We Do</div>
+        <h2 class="section-title" data-i18n="svc.title">Three disciplines.<br/>One integrated approach.</h2>
+        <p class="section-body" data-i18n="svc.body">We don't offer isolated services. Every engagement combines AI, engineering, and marketing into a unified system built around your business outcomes.</p>
       </div>
       <div class="services-grid">
         <div class="svc reveal">
           <span class="svc-num">01</span>
           <div class="svc-icon">🤖</div>
-          <h3 class="svc-title">AI Development</h3>
-          <p class="svc-desc">We design and deploy intelligent systems that eliminate manual work and make your operations autonomous. From LLM integrations to multi-agent pipelines — we build AI that runs on your business logic.</p>
+          <h3 class="svc-title" data-i18n="svc1.title">AI Development</h3>
+          <p class="svc-desc" data-i18n="svc1.desc">We design and deploy intelligent systems that eliminate manual work and make your operations autonomous. From LLM integrations to multi-agent pipelines — we build AI that runs on your business logic.</p>
           <div class="svc-tags"><span class="tag">Chatbots</span><span class="tag">n8n</span><span class="tag">GPT-4o</span><span class="tag">AI Agents</span><span class="tag">Automation</span><span class="tag">Integrations</span></div>
         </div>
         <div class="svc s2 reveal d1">
           <span class="svc-num">02</span>
           <div class="svc-icon">⚡</div>
-          <h3 class="svc-title">Web Development</h3>
-          <p class="svc-desc">High-performance websites and web apps that turn visitors into clients. Built with precision, optimized for speed, and designed to position you as the premium choice in your market.</p>
+          <h3 class="svc-title" data-i18n="svc2.title">Web Development</h3>
+          <p class="svc-desc" data-i18n="svc2.desc">High-performance websites and web apps that turn visitors into clients. Built with precision, optimized for speed, and designed to position you as the premium choice in your market.</p>
           <div class="svc-tags"><span class="tag">React / Next.js</span><span class="tag">Landing Pages</span><span class="tag">SaaS</span><span class="tag">E-commerce</span><span class="tag">SEO</span></div>
         </div>
         <div class="svc s3 reveal d2">
           <span class="svc-num">03</span>
           <div class="svc-icon">📈</div>
-          <h3 class="svc-title">Digital Advertising</h3>
-          <p class="svc-desc">Performance campaigns built on data, not guesswork. We run paid ads, optimize funnels, and test creatives until your ROAS climbs and cost-per-acquisition drops.</p>
+          <h3 class="svc-title" data-i18n="svc3.title">Digital Advertising</h3>
+          <p class="svc-desc" data-i18n="svc3.desc">Performance campaigns built on data, not guesswork. We run paid ads, optimize funnels, and test creatives until your ROAS climbs and cost-per-acquisition drops.</p>
           <div class="svc-tags"><span class="tag">Google Ads</span><span class="tag">Meta Ads</span><span class="tag">Funnels</span><span class="tag">Analytics</span><span class="tag">A/B Testing</span></div>
         </div>
       </div>
@@ -814,33 +826,33 @@
   <section id="process">
     <div class="container">
       <div class="section-header reveal">
-        <div class="eyebrow">How We Work</div>
-        <h2 class="section-title">From brief to live system<br/>in a matter of weeks.</h2>
-        <p class="section-body">We move fast without cutting corners. Our structured process ensures every solution is built to scale.</p>
+        <div class="eyebrow" data-i18n="proc.eyebrow">How We Work</div>
+        <h2 class="section-title" data-i18n="proc.title">From brief to live system<br/>in a matter of weeks.</h2>
+        <p class="section-body" data-i18n="proc.body">We move fast without cutting corners. Our structured process ensures every solution is built to scale.</p>
       </div>
       <div class="process-grid">
         <div class="proc reveal">
           <div class="proc-num">01</div>
           <div class="proc-arrow">→</div>
-          <h3 class="proc-title">Discovery</h3>
-          <p class="proc-desc">We map your workflows, identify bottlenecks, and define the exact outcomes we're building toward. No templates — just your business.</p>
+          <h3 class="proc-title" data-i18n="proc1.title">Discovery</h3>
+          <p class="proc-desc" data-i18n="proc1.desc">We map your workflows, identify bottlenecks, and define the exact outcomes we're building toward. No templates — just your business.</p>
         </div>
         <div class="proc reveal d1">
           <div class="proc-num">02</div>
           <div class="proc-arrow">→</div>
-          <h3 class="proc-title">Architecture</h3>
-          <p class="proc-desc">We design the full system — AI stack, integrations, data flows, and interface — before writing a single line of code. Clarity first.</p>
+          <h3 class="proc-title" data-i18n="proc2.title">Architecture</h3>
+          <p class="proc-desc" data-i18n="proc2.desc">We design the full system — AI stack, integrations, data flows, and interface — before writing a single line of code. Clarity first.</p>
         </div>
         <div class="proc reveal d2">
           <div class="proc-num">03</div>
           <div class="proc-arrow">→</div>
-          <h3 class="proc-title">Build &amp; Deploy</h3>
-          <p class="proc-desc">Rapid development with weekly checkpoints. We deploy incrementally so you see real results while the full system takes shape.</p>
+          <h3 class="proc-title" data-i18n="proc3.title">Build &amp; Deploy</h3>
+          <p class="proc-desc" data-i18n="proc3.desc">Rapid development with weekly checkpoints. We deploy incrementally so you see real results while the full system takes shape.</p>
         </div>
         <div class="proc reveal d3">
           <div class="proc-num">04</div>
-          <h3 class="proc-title">Scale</h3>
-          <p class="proc-desc">Once live, we monitor, iterate, and expand. The system grows with your business — not against it.</p>
+          <h3 class="proc-title" data-i18n="proc4.title">Scale</h3>
+          <p class="proc-desc" data-i18n="proc4.desc">Once live, we monitor, iterate, and expand. The system grows with your business — not against it.</p>
         </div>
       </div>
     </div>
@@ -850,25 +862,25 @@
   <section id="portfolio">
     <div class="container">
       <div class="section-header reveal">
-        <div class="eyebrow">Our Work</div>
-        <h2 class="section-title">Real problems.<br/>Measurable results.</h2>
+        <div class="eyebrow" data-i18n="port.eyebrow">Our Work</div>
+        <h2 class="section-title" data-i18n="port.title">Real problems.<br/>Measurable results.</h2>
       </div>
       <div class="port-grid">
         <div class="port-card feat reveal">
           <div class="port-glow" style="background:rgba(56,189,248,.06)"></div>
           <div>
-            <div class="p-lbl">AI Automation · Internal Operations</div>
-            <h3 class="p-title">Director Reporting Agent — Telegram</h3>
-            <p class="p-desc">Built an internal AI agent on n8n and GPT-4o-mini that automatically pulls data from Google Sheets and delivers structured daily reports directly to the director's Telegram — zero manual involvement.</p>
+            <div class="p-lbl" data-i18n="p1.lbl">AI Automation · Internal Operations</div>
+            <h3 class="p-title" data-i18n="p1.title">Director Reporting Agent — Telegram</h3>
+            <p class="p-desc" data-i18n="p1.desc">Built an internal AI agent on n8n and GPT-4o-mini that automatically pulls data from Google Sheets and delivers structured daily reports directly to the director's Telegram — zero manual involvement.</p>
             <div class="p-metrics">
-              <div><div class="m-val">100%</div><div class="m-lbl">Reports automated</div></div>
-              <div><div class="m-val">3 hrs/day</div><div class="m-lbl">Freed up for the team</div></div>
-              <div><div class="m-val">0</div><div class="m-lbl">Manual actions</div></div>
+              <div><div class="m-val">100%</div><div class="m-lbl" data-i18n="p1.m1">Reports automated</div></div>
+              <div><div class="m-val">3 hrs/day</div><div class="m-lbl" data-i18n="p1.m2">Freed up for the team</div></div>
+              <div><div class="m-val">0</div><div class="m-lbl" data-i18n="p1.m3">Manual actions</div></div>
             </div>
           </div>
           <div class="port-visual">
             <div class="vis-inner">
-              <div style="font-size:11px;color:var(--silver);margin-bottom:8px;font-weight:300">Automation status</div>
+              <div style="font-size:11px;color:var(--silver);margin-bottom:8px;font-weight:300" data-i18n="p1.vis">Automation status</div>
               <div class="vis-bar" style="width:100%"></div>
               <div class="vis-bar"></div>
               <div class="vis-bar"></div>
@@ -878,22 +890,22 @@
         </div>
         <div class="port-card pv reveal d1">
           <div class="port-glow" style="background:rgba(129,140,248,.06)"></div>
-          <div class="p-lbl">Web Development · Real Estate</div>
-          <h3 class="p-title">Property Sales Website for Developer</h3>
-          <p class="p-desc">A modern web platform for a residential complex: floor plan visuals, lead form with CRM integration, and an AI chat for initial client qualification.</p>
+          <div class="p-lbl" data-i18n="p2.lbl">Web Development · Real Estate</div>
+          <h3 class="p-title" data-i18n="p2.title">Property Sales Website for Developer</h3>
+          <p class="p-desc" data-i18n="p2.desc">A modern web platform for a residential complex: floor plan visuals, lead form with CRM integration, and an AI chat for initial client qualification.</p>
           <div class="p-metrics">
-            <div><div class="m-val">2.4×</div><div class="m-lbl">More leads vs old site</div></div>
-            <div><div class="m-val">1.1s</div><div class="m-lbl">Load time</div></div>
+            <div><div class="m-val">2.4×</div><div class="m-lbl" data-i18n="p2.m1">More leads vs old site</div></div>
+            <div><div class="m-val">1.1s</div><div class="m-lbl" data-i18n="p2.m2">Load time</div></div>
           </div>
         </div>
         <div class="port-card reveal d2">
           <div class="port-glow" style="background:rgba(56,189,248,.05)"></div>
-          <div class="p-lbl">Automation · B2B Sales</div>
-          <h3 class="p-title">AI-Powered Inbound Lead Qualification</h3>
-          <p class="p-desc">Automated lead scoring and initial processing of inbound requests via Telegram. Sales managers receive pre-qualified leads with full context — no manual sorting needed.</p>
+          <div class="p-lbl" data-i18n="p3.lbl">Automation · B2B Sales</div>
+          <h3 class="p-title" data-i18n="p3.title">AI-Powered Inbound Lead Qualification</h3>
+          <p class="p-desc" data-i18n="p3.desc">Automated lead scoring and initial processing of inbound requests via Telegram. Sales managers receive pre-qualified leads with full context — no manual sorting needed.</p>
           <div class="p-metrics">
-            <div><div class="m-val">60%</div><div class="m-lbl">Less time on processing</div></div>
-            <div><div class="m-val">3×</div><div class="m-lbl">Faster client response</div></div>
+            <div><div class="m-val">60%</div><div class="m-lbl" data-i18n="p3.m1">Less time on processing</div></div>
+            <div><div class="m-val">3×</div><div class="m-lbl" data-i18n="p3.m2">Faster client response</div></div>
           </div>
         </div>
       </div>
@@ -905,28 +917,28 @@
     <div class="container">
       <div class="about-grid">
         <div class="reveal">
-          <div class="eyebrow">About Solura</div>
-          <h2 class="section-title" style="margin-bottom:28px">Young entrepreneurs.<br/>Practical systems.</h2>
-          <p class="ab">We're a small team of young entrepreneurs building <strong>practical AI systems for real businesses.</strong></p>
-          <p class="ab">We started this because most "AI solutions" sound impressive but don't actually solve anything — they're overcomplicated, overpriced, or completely disconnected from how businesses actually operate. <strong>We do things differently.</strong></p>
-          <p class="ab">Our focus is simple: build systems that save time, reduce manual work, and make businesses run smoother. You work directly with the people building your system. <strong>No layers, no vague promises, no unnecessary complexity.</strong></p>
-          <p class="ab">Everything we create is tailored. No templates. We take the time to understand how your business actually works, then build solutions that fit into it.</p>
+          <div class="eyebrow" data-i18n="ab.eyebrow">About Solura</div>
+          <h2 class="section-title" style="margin-bottom:28px" data-i18n="ab.title">Young entrepreneurs.<br/>Practical systems.</h2>
+          <p class="ab" data-i18n="ab.p1">We're a small team of young entrepreneurs building <strong>practical AI systems for real businesses.</strong></p>
+          <p class="ab" data-i18n="ab.p2">We started this because most "AI solutions" sound impressive but don't actually solve anything — they're overcomplicated, overpriced, or completely disconnected from how businesses actually operate. <strong>We do things differently.</strong></p>
+          <p class="ab" data-i18n="ab.p3">Our focus is simple: build systems that save time, reduce manual work, and make businesses run smoother. You work directly with the people building your system. <strong>No layers, no vague promises, no unnecessary complexity.</strong></p>
+          <p class="ab" data-i18n="ab.p4">Everything we create is tailored. No templates. We take the time to understand how your business actually works, then build solutions that fit into it.</p>
           <div class="pills">
-            <span class="pill">Tashkent</span><span class="pill">Global clients</span><span class="pill">Fast delivery</span>
-            <span class="pill">No templates</span><span class="pill">Transparent pricing</span><span class="pill">Direct communication</span>
+            <span class="pill" data-i18n="ab.pill1">Tashkent</span><span class="pill" data-i18n="ab.pill2">Global clients</span><span class="pill" data-i18n="ab.pill3">Fast delivery</span>
+            <span class="pill" data-i18n="ab.pill4">No templates</span><span class="pill" data-i18n="ab.pill5">Transparent pricing</span><span class="pill" data-i18n="ab.pill6">Direct communication</span>
           </div>
         </div>
         <div class="about-visual reveal d1">
           <div class="av-main">
-            <div style="font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);margin-bottom:20px">Project Performance</div>
-            <div class="pb-row"><div class="pb-meta"><span>Automation delivered</span><span class="hi">100%</span></div><div class="pb-track"><div class="pb-fill" style="width:100%"></div></div></div>
-            <div class="pb-row"><div class="pb-meta"><span>Manual work reduced</span><span class="hi">75%</span></div><div class="pb-track"><div class="pb-fill" style="width:75%"></div></div></div>
-            <div class="pb-row"><div class="pb-meta"><span>On-time delivery</span><span class="hi">100%</span></div><div class="pb-track"><div class="pb-fill" style="width:100%"></div></div></div>
-            <div class="pb-row"><div class="pb-meta"><span>Client satisfaction</span><span class="hi">98%</span></div><div class="pb-track"><div class="pb-fill" style="width:98%"></div></div></div>
-            <div style="margin-top:28px;font-size:11px;color:rgba(255,255,255,.1);letter-spacing:.06em">BASED ON ALL COMPLETED PROJECTS</div>
+            <div style="font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);margin-bottom:20px" data-i18n="av.title">Project Performance</div>
+            <div class="pb-row"><div class="pb-meta"><span data-i18n="av.m1">Automation delivered</span><span class="hi">100%</span></div><div class="pb-track"><div class="pb-fill" style="width:100%"></div></div></div>
+            <div class="pb-row"><div class="pb-meta"><span data-i18n="av.m2">Manual work reduced</span><span class="hi">75%</span></div><div class="pb-track"><div class="pb-fill" style="width:75%"></div></div></div>
+            <div class="pb-row"><div class="pb-meta"><span data-i18n="av.m3">On-time delivery</span><span class="hi">100%</span></div><div class="pb-track"><div class="pb-fill" style="width:100%"></div></div></div>
+            <div class="pb-row"><div class="pb-meta"><span data-i18n="av.m4">Client satisfaction</span><span class="hi">98%</span></div><div class="pb-track"><div class="pb-fill" style="width:98%"></div></div></div>
+            <div style="margin-top:28px;font-size:11px;color:rgba(255,255,255,.1);letter-spacing:.06em" data-i18n="av.foot">BASED ON ALL COMPLETED PROJECTS</div>
           </div>
           <div class="av-accent">
-            <div style="font-size:11px;color:var(--silver);margin-bottom:4px;font-weight:300">Efficiency gain</div>
+            <div style="font-size:11px;color:var(--silver);margin-bottom:4px;font-weight:300" data-i18n="av.gain">Efficiency gain</div>
             <div style="font-family:var(--fd);font-size:24px;font-weight:800" class="gt">up to 3×</div>
             <div class="mini-chart">
               <div class="mini-bar" style="height:25%"></div><div class="mini-bar" style="height:45%"></div>
@@ -943,30 +955,30 @@
   <section id="testimonials">
     <div class="container">
       <div class="section-header reveal">
-        <div class="eyebrow">What to Expect</div>
-        <h2 class="section-title">Concrete. Honest.<br/>No fluff.</h2>
-        <p class="section-body">We don't promise magic. Here's what you actually get when working with Solura.</p>
+        <div class="eyebrow" data-i18n="testi.eyebrow">What to Expect</div>
+        <h2 class="section-title" data-i18n="testi.title">Concrete. Honest.<br/>No fluff.</h2>
+        <p class="section-body" data-i18n="testi.body">We don't promise magic. Here's what you actually get when working with Solura.</p>
       </div>
       <div class="trust-row reveal">
-        <div class="trust-metric"><div class="trust-num">80%</div><div class="trust-desc">Of repetitive tasks automated within the first 30 days</div></div>
-        <div class="trust-metric"><div class="trust-num">2–4 wks</div><div class="trust-desc">From brief to a live, working system</div></div>
-        <div class="trust-metric"><div class="trust-num">0</div><div class="trust-desc">Template solutions — every project is built for you specifically</div></div>
+        <div class="trust-metric"><div class="trust-num">80%</div><div class="trust-desc" data-i18n="tm1.desc">Of repetitive tasks automated within the first 30 days</div></div>
+        <div class="trust-metric"><div class="trust-num" data-i18n="tm2.num">2–4 wks</div><div class="trust-desc" data-i18n="tm2.desc">From brief to a live, working system</div></div>
+        <div class="trust-metric"><div class="trust-num">0</div><div class="trust-desc" data-i18n="tm3.desc">Template solutions — every project is built for you specifically</div></div>
       </div>
       <div class="testi-grid">
         <div class="testi-card reveal">
           <div class="t-q">"</div>
-          <p class="t-text">Direct access to the team — you don't get handed off to account managers. The people making decisions are the ones building your system. That means speed and full accountability for results.</p>
-          <div class="t-auth"><div class="t-av">01</div><div><div class="t-name">Direct Communication</div><div class="t-role">No middlemen</div></div></div>
+          <p class="t-text" data-i18n="t1.text">Direct access to the team — you don't get handed off to account managers. The people making decisions are the ones building your system. That means speed and full accountability for results.</p>
+          <div class="t-auth"><div class="t-av">01</div><div><div class="t-name" data-i18n="t1.name">Direct Communication</div><div class="t-role" data-i18n="t1.role">No middlemen</div></div></div>
         </div>
         <div class="testi-card reveal d1">
           <div class="t-q">"</div>
-          <p class="t-text">No blurry deadlines. We work in clear stages with weekly deliverables. You always know where things stand and what comes next — no unpleasant surprises.</p>
-          <div class="t-auth"><div class="t-av">02</div><div><div class="t-name">Transparent Process</div><div class="t-role">Clear stages and deadlines</div></div></div>
+          <p class="t-text" data-i18n="t2.text">No blurry deadlines. We work in clear stages with weekly deliverables. You always know where things stand and what comes next — no unpleasant surprises.</p>
+          <div class="t-auth"><div class="t-av">02</div><div><div class="t-name" data-i18n="t2.name">Transparent Process</div><div class="t-role" data-i18n="t2.role">Clear stages and deadlines</div></div></div>
         </div>
         <div class="testi-card reveal d2">
           <div class="t-q">"</div>
-          <p class="t-text">We build systems that fit your reality, not a theoretical model. If something isn't working, we fix it — no arguments about scope, no extra invoices.</p>
-          <div class="t-auth"><div class="t-av">03</div><div><div class="t-name">Built for Real Business</div><div class="t-role">Flexible, no bureaucracy</div></div></div>
+          <p class="t-text" data-i18n="t3.text">We build systems that fit your reality, not a theoretical model. If something isn't working, we fix it — no arguments about scope, no extra invoices.</p>
+          <div class="t-auth"><div class="t-av">03</div><div><div class="t-name" data-i18n="t3.name">Built for Real Business</div><div class="t-role" data-i18n="t3.role">Flexible, no bureaucracy</div></div></div>
         </div>
       </div>
     </div>
@@ -978,15 +990,15 @@
       <div class="cta-box reveal">
         <div class="cta-orb1"></div>
         <div class="cta-orb2"></div>
-        <div class="eyebrow" style="justify-content:center">Ready to Build?</div>
-        <h2 class="cta-h2">While you think it over,<br/><span class="gt">your competitors automate.</span></h2>
-        <p class="cta-sub">First consultation is free. We'll map your processes and show you exactly what can be automated — no filler, no sales pressure.</p>
+        <div class="eyebrow" style="justify-content:center" data-i18n="cta.eyebrow">Ready to Build?</div>
+        <h2 class="cta-h2" data-i18n="cta.title">While you think it over,<br/><span class="gt">your competitors automate.</span></h2>
+        <p class="cta-sub" data-i18n="cta.sub">First consultation is free. We'll map your processes and show you exactly what can be automated — no filler, no sales pressure.</p>
         <div class="cta-actions">
           <a href="#contact" class="btn-primary" style="font-size:16px;padding:16px 32px">
-            Start the Conversation
+            <span data-i18n="cta.btn1">Start the Conversation</span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
-          <a href="#portfolio" class="btn-secondary" style="font-size:16px;padding:16px 32px">View Our Work</a>
+          <a href="#portfolio" class="btn-secondary" style="font-size:16px;padding:16px 32px" data-i18n="cta.btn2">View Our Work</a>
         </div>
       </div>
     </div>
@@ -997,41 +1009,41 @@
     <div class="container">
       <div class="contact-grid">
         <div class="reveal">
-          <div class="eyebrow">Contact</div>
-          <h2 class="ci-title">Tell us about your business.</h2>
-          <p class="ci-body">Tell us what you're building or what's slowing you down. We'll come back with an honest assessment of what's possible and what it takes.</p>
+          <div class="eyebrow" data-i18n="ct.eyebrow">Contact</div>
+          <h2 class="ci-title" data-i18n="ct.title">Tell us about your business.</h2>
+          <p class="ci-body" data-i18n="ct.body">Tell us what you're building or what's slowing you down. We'll come back with an honest assessment of what's possible and what it takes.</p>
           <div class="contact-details">
             <div class="cd-row"><div class="cd-icon">📧</div><div><div class="cd-lbl">Email</div><div class="cd-val"><a href="mailto:info@solura-agency.com" class="cd-link">info@solura-agency.com</a></div></div></div>
             <div class="cd-row"><div class="cd-icon">✈️</div><div><div class="cd-lbl">Telegram</div><div class="cd-val"><a href="https://t.me/solura_agency" target="_blank" class="cd-link">@solura_agency</a></div></div></div>
             <div class="cd-row"><div class="cd-icon">📸</div><div><div class="cd-lbl">Instagram</div><div class="cd-val"><a href="https://instagram.com/solura.agency" target="_blank" class="cd-link">@solura.agency</a></div></div></div>
-            <div class="cd-row"><div class="cd-icon">📍</div><div><div class="cd-lbl">Address</div><div class="cd-val">Oloy Bozori 59, Tashkent</div></div></div>
-            <div class="cd-row"><div class="cd-icon">🕐</div><div><div class="cd-lbl">Response time</div><div class="cd-val">Within 24 hours</div></div></div>
+            <div class="cd-row"><div class="cd-icon">📍</div><div><div class="cd-lbl" data-i18n="ct.lbl.addr">Address</div><div class="cd-val">Oloy Bozori 59, Tashkent</div></div></div>
+            <div class="cd-row"><div class="cd-icon">🕐</div><div><div class="cd-lbl" data-i18n="ct.lbl.resp">Response time</div><div class="cd-val" data-i18n="ct.val.resp">Within 24 hours</div></div></div>
           </div>
         </div>
         <div class="reveal d1">
           <div class="cf">
-            <div style="font-family:var(--fd);font-size:20px;font-weight:700;margin-bottom:28px;letter-spacing:-.02em">Free Consultation</div>
+            <div style="font-family:var(--fd);font-size:20px;font-weight:700;margin-bottom:28px;letter-spacing:-.02em" data-i18n="cf.title">Free Consultation</div>
             <div class="form-row">
-              <div class="fg"><label for="f-first">First Name</label><input type="text" id="f-first" name="firstName" autocomplete="given-name" placeholder="John"/></div>
-              <div class="fg"><label for="f-last">Last Name</label><input type="text" id="f-last" name="lastName" autocomplete="family-name" placeholder="Smith"/></div>
+              <div class="fg"><label for="f-first" data-i18n="cf.lbl.first">First Name</label><input type="text" id="f-first" name="firstName" autocomplete="given-name" placeholder="John" data-i18n-placeholder="ph.first"/></div>
+              <div class="fg"><label for="f-last" data-i18n="cf.lbl.last">Last Name</label><input type="text" id="f-last" name="lastName" autocomplete="family-name" placeholder="Smith" data-i18n-placeholder="ph.last"/></div>
             </div>
-            <div class="fg"><label for="f-email">Email</label><input type="email" id="f-email" name="email" autocomplete="email" placeholder="you@company.com"/></div>
-            <div class="fg"><label for="f-phone">Phone / Telegram</label><input type="tel" id="f-phone" name="phone" autocomplete="tel" placeholder="+1 234 567 890 or @username"/></div>
-            <div class="fg"><label for="f-company">Company / Project</label><input type="text" id="f-company" name="company" autocomplete="organization" placeholder="Your company name"/></div>
+            <div class="fg"><label for="f-email" data-i18n="cf.lbl.email">Email</label><input type="email" id="f-email" name="email" autocomplete="email" placeholder="you@company.com" data-i18n-placeholder="ph.email"/></div>
+            <div class="fg"><label for="f-phone" data-i18n="cf.lbl.phone">Phone / Telegram</label><input type="tel" id="f-phone" name="phone" autocomplete="tel" placeholder="+1 234 567 890 or @username" data-i18n-placeholder="ph.phone"/></div>
+            <div class="fg"><label for="f-company" data-i18n="cf.lbl.company">Company / Project</label><input type="text" id="f-company" name="company" autocomplete="organization" placeholder="Your company name" data-i18n-placeholder="ph.company"/></div>
             <div class="fg">
-              <label for="f-service">What Do You Need?</label>
+              <label for="f-service" data-i18n="cf.lbl.service">What Do You Need?</label>
               <select id="f-service" name="service">
-                <option value="">Select a service...</option>
-                <option>AI Development &amp; Automation</option>
-                <option>Web Development</option>
-                <option>Digital Advertising</option>
-                <option>Full-Stack Engagement</option>
-                <option>Not sure — let's talk</option>
+                <option value="" data-i18n="cf.opt0">Select a service...</option>
+                <option data-i18n="cf.opt1">AI Development &amp; Automation</option>
+                <option data-i18n="cf.opt2">Web Development</option>
+                <option data-i18n="cf.opt3">Digital Advertising</option>
+                <option data-i18n="cf.opt4">Full-Stack Engagement</option>
+                <option data-i18n="cf.opt5">Not sure — let's talk</option>
               </select>
             </div>
-            <div class="fg"><label for="f-message">Tell Us More</label><textarea id="f-message" name="message" placeholder="Describe your current challenge, what you want to automate, or what's slowing your business down…"></textarea></div>
-            <button class="form-submit" type="submit" onclick="handleSubmit(event)">Send Message →</button>
-            <div class="form-note">No commitment required. We respond within 24 hours.</div>
+            <div class="fg"><label for="f-message" data-i18n="cf.lbl.msg">Tell Us More</label><textarea id="f-message" name="message" placeholder="Describe your current challenge, what you want to automate, or what's slowing your business down…" data-i18n-placeholder="ph.msg"></textarea></div>
+            <button class="form-submit" type="submit" onclick="handleSubmit(event)" data-i18n="cf.submit">Send Message →</button>
+            <div class="form-note" data-i18n="cf.note">No commitment required. We respond within 24 hours.</div>
           </div>
         </div>
       </div>
@@ -1043,8 +1055,8 @@
       <div class="footer-inner">
         <div class="logo"><div class="logo-mark">S</div>Solura</div>
         <div class="footer-links">
-          <a href="#services">Services</a><a href="#process">Process</a>
-          <a href="#portfolio">Work</a><a href="#about">About</a><a href="#contact">Contact</a>
+          <a href="#services" data-i18n="nav.services">Services</a><a href="#process" data-i18n="nav.process">Process</a>
+          <a href="#portfolio" data-i18n="nav.work">Work</a><a href="#about" data-i18n="nav.about">About</a><a href="#contact" data-i18n="nav.contact">Contact</a>
           <a href="mailto:info@solura-agency.com" class="footer-email">info@solura-agency.com</a>
         </div>
         <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
@@ -1053,7 +1065,7 @@
             <a href="https://instagram.com/solura.agency" target="_blank" class="footer-social" title="Instagram">📸</a>
             <a href="mailto:info@solura-agency.com" class="footer-social" title="Email">📧</a>
           </div>
-          <div class="footer-copy">© 2026 Solura. All rights reserved.</div>
+          <div class="footer-copy" data-i18n="ft.copy">© 2026 Solura. All rights reserved.</div>
         </div>
       </div>
     </div>
@@ -1091,6 +1103,223 @@
       document.addEventListener('mousemove', e => { g.style.left=e.clientX+'px'; g.style.top=e.clientY+'px'; });
     }
 
+    // ── Language switcher ──────────────────────────────────────────────
+    const translations = {
+      en: {
+        'skip': 'Skip to main content',
+        'nav.services': 'Services', 'nav.process': 'Process', 'nav.work': 'Work',
+        'nav.about': 'About', 'nav.contact': 'Contact', 'nav.book': 'Book a Call',
+        'hero.badge': 'Now Accepting New Clients — 2026',
+        'hero.h1': 'Results<br/>that <span class="gtw">last.</span>',
+        'hero.sub': 'Innovation, Automation, and Growth — All in One Place. We build systems that actually work inside your business.',
+        'hero.btn1': 'Book a Consultation', 'hero.btn2': 'Our Work',
+        'hero.stat1': 'Of repetitive tasks can be automated',
+        'hero.stat2': 'Reduction in operational costs through automation',
+        'hero.stat3': 'Productivity increase with AI-powered workflows',
+        'hero.c1lbl': 'Tasks Automated', 'hero.c2stxt': 'AI Agent Running',
+        'hero.c3lbl': 'Efficiency gain', 'hero.c3sub': 'avg. across projects',
+        'svc.eyebrow': 'What We Do',
+        'svc.title': 'Three disciplines.<br/>One integrated approach.',
+        'svc.body': 'We don\'t offer isolated services. Every engagement combines AI, engineering, and marketing into a unified system built around your business outcomes.',
+        'svc1.title': 'AI Development',
+        'svc1.desc': 'We design and deploy intelligent systems that eliminate manual work and make your operations autonomous. From LLM integrations to multi-agent pipelines — we build AI that runs on your business logic.',
+        'svc2.title': 'Web Development',
+        'svc2.desc': 'High-performance websites and web apps that turn visitors into clients. Built with precision, optimized for speed, and designed to position you as the premium choice in your market.',
+        'svc3.title': 'Digital Advertising',
+        'svc3.desc': 'Performance campaigns built on data, not guesswork. We run paid ads, optimize funnels, and test creatives until your ROAS climbs and cost-per-acquisition drops.',
+        'proc.eyebrow': 'How We Work',
+        'proc.title': 'From brief to live system<br/>in a matter of weeks.',
+        'proc.body': 'We move fast without cutting corners. Our structured process ensures every solution is built to scale.',
+        'proc1.title': 'Discovery',
+        'proc1.desc': 'We map your workflows, identify bottlenecks, and define the exact outcomes we\'re building toward. No templates — just your business.',
+        'proc2.title': 'Architecture',
+        'proc2.desc': 'We design the full system — AI stack, integrations, data flows, and interface — before writing a single line of code. Clarity first.',
+        'proc3.title': 'Build &amp; Deploy',
+        'proc3.desc': 'Rapid development with weekly checkpoints. We deploy incrementally so you see real results while the full system takes shape.',
+        'proc4.title': 'Scale',
+        'proc4.desc': 'Once live, we monitor, iterate, and expand. The system grows with your business — not against it.',
+        'port.eyebrow': 'Our Work',
+        'port.title': 'Real problems.<br/>Measurable results.',
+        'p1.lbl': 'AI Automation · Internal Operations',
+        'p1.title': 'Director Reporting Agent — Telegram',
+        'p1.desc': 'Built an internal AI agent on n8n and GPT-4o-mini that automatically pulls data from Google Sheets and delivers structured daily reports directly to the director\'s Telegram — zero manual involvement.',
+        'p1.m1': 'Reports automated', 'p1.m2': 'Freed up for the team', 'p1.m3': 'Manual actions',
+        'p1.vis': 'Automation status',
+        'p2.lbl': 'Web Development · Real Estate',
+        'p2.title': 'Property Sales Website for Developer',
+        'p2.desc': 'A modern web platform for a residential complex: floor plan visuals, lead form with CRM integration, and an AI chat for initial client qualification.',
+        'p2.m1': 'More leads vs old site', 'p2.m2': 'Load time',
+        'p3.lbl': 'Automation · B2B Sales',
+        'p3.title': 'AI-Powered Inbound Lead Qualification',
+        'p3.desc': 'Automated lead scoring and initial processing of inbound requests via Telegram. Sales managers receive pre-qualified leads with full context — no manual sorting needed.',
+        'p3.m1': 'Less time on processing', 'p3.m2': 'Faster client response',
+        'ab.eyebrow': 'About Solura',
+        'ab.title': 'Young entrepreneurs.<br/>Practical systems.',
+        'ab.p1': 'We\'re a small team of young entrepreneurs building <strong>practical AI systems for real businesses.</strong>',
+        'ab.p2': 'We started this because most "AI solutions" sound impressive but don\'t actually solve anything — they\'re overcomplicated, overpriced, or completely disconnected from how businesses actually operate. <strong>We do things differently.</strong>',
+        'ab.p3': 'Our focus is simple: build systems that save time, reduce manual work, and make businesses run smoother. You work directly with the people building your system. <strong>No layers, no vague promises, no unnecessary complexity.</strong>',
+        'ab.p4': 'Everything we create is tailored. No templates. We take the time to understand how your business actually works, then build solutions that fit into it.',
+        'ab.pill1': 'Tashkent', 'ab.pill2': 'Global clients', 'ab.pill3': 'Fast delivery',
+        'ab.pill4': 'No templates', 'ab.pill5': 'Transparent pricing', 'ab.pill6': 'Direct communication',
+        'av.title': 'Project Performance',
+        'av.m1': 'Automation delivered', 'av.m2': 'Manual work reduced',
+        'av.m3': 'On-time delivery', 'av.m4': 'Client satisfaction',
+        'av.foot': 'BASED ON ALL COMPLETED PROJECTS', 'av.gain': 'Efficiency gain',
+        'testi.eyebrow': 'What to Expect',
+        'testi.title': 'Concrete. Honest.<br/>No fluff.',
+        'testi.body': 'We don\'t promise magic. Here\'s what you actually get when working with Solura.',
+        'tm1.desc': 'Of repetitive tasks automated within the first 30 days',
+        'tm2.num': '2–4 wks', 'tm2.desc': 'From brief to a live, working system',
+        'tm3.desc': 'Template solutions — every project is built for you specifically',
+        't1.text': 'Direct access to the team — you don\'t get handed off to account managers. The people making decisions are the ones building your system. That means speed and full accountability for results.',
+        't1.name': 'Direct Communication', 't1.role': 'No middlemen',
+        't2.text': 'No blurry deadlines. We work in clear stages with weekly deliverables. You always know where things stand and what comes next — no unpleasant surprises.',
+        't2.name': 'Transparent Process', 't2.role': 'Clear stages and deadlines',
+        't3.text': 'We build systems that fit your reality, not a theoretical model. If something isn\'t working, we fix it — no arguments about scope, no extra invoices.',
+        't3.name': 'Built for Real Business', 't3.role': 'Flexible, no bureaucracy',
+        'cta.eyebrow': 'Ready to Build?',
+        'cta.title': 'While you think it over,<br/><span class="gt">your competitors automate.</span>',
+        'cta.sub': 'First consultation is free. We\'ll map your processes and show you exactly what can be automated — no filler, no sales pressure.',
+        'cta.btn1': 'Start the Conversation', 'cta.btn2': 'View Our Work',
+        'ct.eyebrow': 'Contact', 'ct.title': 'Tell us about your business.',
+        'ct.body': 'Tell us what you\'re building or what\'s slowing you down. We\'ll come back with an honest assessment of what\'s possible and what it takes.',
+        'ct.lbl.addr': 'Address', 'ct.lbl.resp': 'Response time', 'ct.val.resp': 'Within 24 hours',
+        'cf.title': 'Free Consultation',
+        'cf.lbl.first': 'First Name', 'cf.lbl.last': 'Last Name', 'cf.lbl.email': 'Email',
+        'cf.lbl.phone': 'Phone / Telegram', 'cf.lbl.company': 'Company / Project',
+        'cf.lbl.service': 'What Do You Need?', 'cf.lbl.msg': 'Tell Us More',
+        'cf.opt0': 'Select a service...', 'cf.opt1': 'AI Development & Automation',
+        'cf.opt2': 'Web Development', 'cf.opt3': 'Digital Advertising',
+        'cf.opt4': 'Full-Stack Engagement', 'cf.opt5': 'Not sure — let\'s talk',
+        'cf.submit': 'Send Message →',
+        'cf.note': 'No commitment required. We respond within 24 hours.',
+        'ft.copy': '© 2026 Solura. All rights reserved.',
+        'ph.first': 'John', 'ph.last': 'Smith', 'ph.email': 'you@company.com',
+        'ph.phone': '+1 234 567 890 or @username', 'ph.company': 'Your company name',
+        'ph.msg': 'Describe your current challenge, what you want to automate, or what\'s slowing your business down…',
+        'err.required': '⚠ Please fill required fields',
+        'form.sending': 'Sending...', 'form.sent': '✓ Message Sent!', 'form.fail': '✗ Failed — try again',
+      },
+      ru: {
+        'skip': 'Перейти к содержимому',
+        'nav.services': 'Услуги', 'nav.process': 'Процесс', 'nav.work': 'Работы',
+        'nav.about': 'О нас', 'nav.contact': 'Контакт', 'nav.book': 'Записаться',
+        'hero.badge': 'Принимаем новых клиентов — 2026',
+        'hero.h1': 'Результаты,<br/>которые <span class="gtw">остаются.</span>',
+        'hero.sub': 'Инновации, Автоматизация и Рост — всё в одном месте. Мы строим системы, которые реально работают в вашем бизнесе.',
+        'hero.btn1': 'Записаться на консультацию', 'hero.btn2': 'Наши работы',
+        'hero.stat1': 'Рутинных задач поддаётся автоматизации',
+        'hero.stat2': 'Снижение операционных расходов через автоматизацию',
+        'hero.stat3': 'Рост производительности с AI-воркфлоу',
+        'hero.c1lbl': 'Задач автоматизировано', 'hero.c2stxt': 'AI Агент работает',
+        'hero.c3lbl': 'Рост эффективности', 'hero.c3sub': 'среднее по проектам',
+        'svc.eyebrow': 'Что мы делаем',
+        'svc.title': 'Три направления.<br/>Один интегрированный подход.',
+        'svc.body': 'Мы не предлагаем изолированные услуги. Каждый проект объединяет AI, инженерию и маркетинг в единую систему, выстроенную вокруг ваших бизнес-целей.',
+        'svc1.title': 'AI Разработка',
+        'svc1.desc': 'Мы проектируем и внедряем интеллектуальные системы, которые устраняют ручной труд и делают ваши операции автономными. От LLM-интеграций до мультиагентных пайплайнов — мы строим AI по логике вашего бизнеса.',
+        'svc2.title': 'Веб-разработка',
+        'svc2.desc': 'Высокопроизводительные сайты и веб-приложения, которые превращают посетителей в клиентов. Точная реализация, оптимизация скорости и позиционирование вас как премиум-выбора на рынке.',
+        'svc3.title': 'Цифровая реклама',
+        'svc3.desc': 'Перформанс-кампании на основе данных, а не догадок. Мы запускаем платную рекламу, оптимизируем воронки и тестируем креативы, пока ваш ROAS не вырастет, а стоимость привлечения не упадёт.',
+        'proc.eyebrow': 'Как мы работаем',
+        'proc.title': 'От брифа до живой системы<br/>за несколько недель.',
+        'proc.body': 'Мы работаем быстро, не жертвуя качеством. Структурированный процесс обеспечивает масштабируемость каждого решения.',
+        'proc1.title': 'Аналитика',
+        'proc1.desc': 'Мы изучаем ваши процессы, выявляем узкие места и определяем конкретные результаты, к которым движемся. Никаких шаблонов — только ваш бизнес.',
+        'proc2.title': 'Архитектура',
+        'proc2.desc': 'Мы проектируем всю систему — AI-стек, интеграции, потоки данных и интерфейс — до написания первой строки кода. Сначала ясность.',
+        'proc3.title': 'Разработка и Деплой',
+        'proc3.desc': 'Быстрая разработка с еженедельными контрольными точками. Мы деплоим инкрементально, чтобы вы видели реальные результаты пока система формируется.',
+        'proc4.title': 'Масштабирование',
+        'proc4.desc': 'После запуска — мониторинг, итерации и расширение. Система растёт вместе с вашим бизнесом, а не вопреки ему.',
+        'port.eyebrow': 'Наши работы',
+        'port.title': 'Реальные задачи.<br/>Измеримые результаты.',
+        'p1.lbl': 'AI Автоматизация · Внутренние операции',
+        'p1.title': 'Агент отчётности директора — Telegram',
+        'p1.desc': 'Создали внутреннего AI-агента на n8n и GPT-4o-mini, который автоматически собирает данные из Google Sheets и отправляет структурированные ежедневные отчёты прямо в Telegram директора — без ручного участия.',
+        'p1.m1': 'Отчётов автоматизировано', 'p1.m2': 'Освободили для команды', 'p1.m3': 'Ручных действий',
+        'p1.vis': 'Статус автоматизации',
+        'p2.lbl': 'Веб-разработка · Недвижимость',
+        'p2.title': 'Сайт продаж для застройщика',
+        'p2.desc': 'Современная веб-платформа для жилого комплекса: визуализация планировок, форма лида с CRM-интеграцией и AI-чат для первичной квалификации клиентов.',
+        'p2.m1': 'Больше лидов vs старый сайт', 'p2.m2': 'Время загрузки',
+        'p3.lbl': 'Автоматизация · B2B Продажи',
+        'p3.title': 'AI-квалификация входящих лидов',
+        'p3.desc': 'Автоматическая оценка и первичная обработка входящих заявок через Telegram. Менеджеры по продажам получают предквалифицированные лиды с полным контекстом — без ручной сортировки.',
+        'p3.m1': 'Меньше времени на обработку', 'p3.m2': 'Быстрее ответ клиенту',
+        'ab.eyebrow': 'О Solura',
+        'ab.title': 'Молодые предприниматели.<br/>Практичные системы.',
+        'ab.p1': 'Мы небольшая команда молодых предпринимателей, создающих <strong>практичные AI-системы для реального бизнеса.</strong>',
+        'ab.p2': 'Мы начали это, потому что большинство "AI-решений" звучат эффектно, но реально ничего не решают — они переусложнены, переоценены или полностью оторваны от того, как бизнес работает на самом деле. <strong>Мы делаем иначе.</strong>',
+        'ab.p3': 'Наш фокус прост: строить системы, которые экономят время, сокращают ручной труд и делают бизнес эффективнее. Вы работаете напрямую с теми, кто строит вашу систему. <strong>Без прослоек, без размытых обещаний, без лишней сложности.</strong>',
+        'ab.p4': 'Всё, что мы создаём, сделано под вас. Никаких шаблонов. Мы вникаем в то, как ваш бизнес реально работает, и строим решения, которые в него встраиваются.',
+        'ab.pill1': 'Ташкент', 'ab.pill2': 'Глобальные клиенты', 'ab.pill3': 'Быстрая сдача',
+        'ab.pill4': 'Без шаблонов', 'ab.pill5': 'Прозрачные цены', 'ab.pill6': 'Прямая коммуникация',
+        'av.title': 'Производительность проектов',
+        'av.m1': 'Автоматизация выполнена', 'av.m2': 'Ручной труд сокращён',
+        'av.m3': 'Сдача в срок', 'av.m4': 'Удовлетворённость клиентов',
+        'av.foot': 'НА ОСНОВЕ ВСЕХ ЗАВЕРШЁННЫХ ПРОЕКТОВ', 'av.gain': 'Рост эффективности',
+        'testi.eyebrow': 'Чего ожидать',
+        'testi.title': 'Конкретно. Честно.<br/>Без лишнего.',
+        'testi.body': 'Мы не обещаем магии. Вот что вы реально получаете, работая с Solura.',
+        'tm1.desc': 'Рутинных задач автоматизировано в первые 30 дней',
+        'tm2.num': '2–4 нед.', 'tm2.desc': 'От брифа до живой, работающей системы',
+        'tm3.desc': 'Шаблонных решений — каждый проект создан именно для вас',
+        't1.text': 'Прямой доступ к команде — вас не передают аккаунт-менеджерам. Те, кто принимает решения, сами строят вашу систему. Это означает скорость и полную ответственность за результат.',
+        't1.name': 'Прямое общение', 't1.role': 'Без посредников',
+        't2.text': 'Никаких размытых дедлайнов. Мы работаем чёткими этапами с еженедельными deliverable. Вы всегда знаете, где стоят дела и что будет дальше — без неприятных сюрпризов.',
+        't2.name': 'Прозрачный процесс', 't2.role': 'Чёткие этапы и сроки',
+        't3.text': 'Мы строим системы, которые соответствуют вашей реальности, а не теоретической модели. Если что-то не работает — мы это исправляем. Без споров о scope, без дополнительных счетов.',
+        't3.name': 'Создано для реального бизнеса', 't3.role': 'Гибко, без бюрократии',
+        'cta.eyebrow': 'Готовы начать?',
+        'cta.title': 'Пока вы думаете,<br/><span class="gt">конкуренты автоматизируют.</span>',
+        'cta.sub': 'Первая консультация бесплатна. Мы изучим ваши процессы и покажем, что именно можно автоматизировать — без воды и давления.',
+        'cta.btn1': 'Начать разговор', 'cta.btn2': 'Посмотреть работы',
+        'ct.eyebrow': 'Контакт', 'ct.title': 'Расскажите о вашем бизнесе.',
+        'ct.body': 'Расскажите, что вы строите или что вас тормозит. Мы ответим честной оценкой того, что возможно и что для этого нужно.',
+        'ct.lbl.addr': 'Адрес', 'ct.lbl.resp': 'Время ответа', 'ct.val.resp': 'В течение 24 часов',
+        'cf.title': 'Бесплатная консультация',
+        'cf.lbl.first': 'Имя', 'cf.lbl.last': 'Фамилия', 'cf.lbl.email': 'Email',
+        'cf.lbl.phone': 'Телефон / Telegram', 'cf.lbl.company': 'Компания / Проект',
+        'cf.lbl.service': 'Что вам нужно?', 'cf.lbl.msg': 'Расскажите подробнее',
+        'cf.opt0': 'Выберите услугу...', 'cf.opt1': 'AI Разработка и Автоматизация',
+        'cf.opt2': 'Веб-разработка', 'cf.opt3': 'Цифровая реклама',
+        'cf.opt4': 'Полный комплекс услуг', 'cf.opt5': 'Не уверен — давайте поговорим',
+        'cf.submit': 'Отправить →',
+        'cf.note': 'Никаких обязательств. Мы отвечаем в течение 24 часов.',
+        'ft.copy': '© 2026 Solura. Все права защищены.',
+        'ph.first': 'Иван', 'ph.last': 'Иванов', 'ph.email': 'вы@компания.com',
+        'ph.phone': '+7 999 123 45 67 или @username', 'ph.company': 'Название компании',
+        'ph.msg': 'Опишите вашу текущую задачу, что хотите автоматизировать или что тормозит ваш бизнес…',
+        'err.required': '⚠ Заполните обязательные поля',
+        'form.sending': 'Отправка...', 'form.sent': '✓ Сообщение отправлено!', 'form.fail': '✗ Ошибка — попробуйте ещё раз',
+      }
+    };
+
+    let currentLang = localStorage.getItem('solura-lang') || 'en';
+
+    function setLang(l) {
+      currentLang = l;
+      localStorage.setItem('solura-lang', l);
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[l][key] !== undefined) el.innerHTML = translations[l][key];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[l][key] !== undefined) el.placeholder = translations[l][key];
+      });
+      const label = l === 'en' ? 'RU' : 'EN';
+      document.querySelectorAll('#langBtn, #langBtnMob').forEach(btn => { if(btn) btn.textContent = label; });
+    }
+
+    function toggleLang() { setLang(currentLang === 'en' ? 'ru' : 'en'); }
+
+    // Apply saved language on load
+    if (currentLang === 'ru') setLang('ru');
+
     // Form
     const WH = 'https://rizobot.app.n8n.cloud/webhook/solura-contact';
     async function handleSubmit(e){
@@ -1105,22 +1334,23 @@
         message:   document.getElementById('f-message').value.trim(),
         submittedAt: new Date().toISOString(), source:'solura-website'
       };
+      const T = translations[currentLang];
       if(!p.email||!p.firstName||!p.message){
-        btn.textContent='⚠ Please fill required fields'; btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';
-        setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; }, 2500); return;
+        btn.textContent=T['err.required']; btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';
+        setTimeout(()=>{ btn.textContent=T['cf.submit']; btn.style.background=''; }, 2500); return;
       }
-      btn.textContent='Sending...'; btn.style.opacity='.7'; btn.disabled=true;
+      btn.textContent=T['form.sending']; btn.style.opacity='.7'; btn.disabled=true;
       try{
         const r = await fetch(WH,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
         if(r.ok){
-          btn.textContent='✓ Message Sent!'; btn.style.background='linear-gradient(135deg,#22c55e,#16a34a)'; btn.style.opacity='1'; btn.disabled=false;
+          btn.textContent=T['form.sent']; btn.style.background='linear-gradient(135deg,#22c55e,#16a34a)'; btn.style.opacity='1'; btn.disabled=false;
           ['f-first','f-last','f-email','f-company','f-message'].forEach(id=>document.getElementById(id).value='');
           document.getElementById('f-service').selectedIndex=0;
-          setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; }, 4000);
+          setTimeout(()=>{ btn.textContent=T['cf.submit']; btn.style.background=''; }, 4000);
         } else throw 0;
       } catch{
-        btn.textContent='✗ Failed — try again'; btn.style.background='linear-gradient(135deg,#ef4444,#dc2626)'; btn.style.opacity='1'; btn.disabled=false;
-        setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; }, 3000);
+        btn.textContent=T['form.fail']; btn.style.background='linear-gradient(135deg,#ef4444,#dc2626)'; btn.style.opacity='1'; btn.disabled=false;
+        setTimeout(()=>{ btn.textContent=T['cf.submit']; btn.style.background=''; }, 3000);
       }
     }
   </script>
