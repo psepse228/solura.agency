@@ -1,12 +1,16 @@
-# Dev-activity auto-pull, project roles, and project colors — design
+# Dev-activity auto-pull, project roles, colors, and projects-first IA — design
 
 Status: approved, ready for implementation plan.
-Scope: build order item #2 (dev-activity), plus two small additions to the
-already-shipped item #1 (roles, colors) that surfaced naturally while
-scoping item #2. See `../architecture.md`, `../build-plan.md`.
+Scope: build order item #2 (dev-activity), plus three additions to the
+already-shipped item #1 that surfaced naturally while scoping item #2 and
+reviewing the mockup: roles, colors, and a real information-architecture
+shift (projects become the primary navigable unit, each with its own full
+detail page, rather than everything flattened onto one client-grouped
+list). See `../architecture.md`, `../build-plan.md`.
 Explicitly out of scope: Vercel deployment events and Claude Code Remote
 sessions (later passes of item #2), docs library (#3), Canvas sync (#4),
-Telegram lead capture (#5).
+Telegram lead capture (#5). Mockup approved during this brainstorm:
+https://claude.ai/code/artifact/ed1b8b91-02fd-4e47-82ee-d30d3e8d98ad
 
 ## Part A — Dev-activity auto-pull (GitHub commits)
 
@@ -178,6 +182,68 @@ A 3px left-edge accent stripe per project card (visible in the mockup) plus
 a small color dot next to the project name — enough to make each product
 instantly recognizable by color without turning the page into a rainbow.
 
+## Part D — Projects-first information architecture
+
+### Why
+
+Reviewing the mockup surfaced that grouping by client and showing only a
+3-line activity accordion doesn't give projects — the actual unit of daily
+work — enough room. Approved direction (mockup:
+https://claude.ai/code/artifact/ed1b8b91-02fd-4e47-82ee-d30d3e8d98ad):
+projects become the primary navigable unit, client becomes metadata on a
+project rather than the top-level grouping, and each project gets a real
+detail page instead of an inline expand.
+
+### API
+
+Two new endpoints, additive — `GET /clients` (existing) is untouched, still
+used wherever client-grouped data is genuinely useful later (e.g. a future
+"Clients" nav section):
+
+- **`GET /projects`** — flat list, one row per project, each with:
+  `id, name, client_id, client_name, status, progress, github_repo,
+  accent_start, accent_end, dev_members, client_work_members,
+  last_activity_at`. This becomes the home page's data source, replacing
+  its current use of `GET /clients`. `last_activity_at` is the `occurred_at`
+  of that project's most recent `dev_events` row (or `null` if none/no repo
+  linked) — a single indexed query
+  (`select project_id, max(occurred_at) ... group by project_id`), not N+1.
+- **`GET /projects/{id}`** — everything `GET /projects` has for one project,
+  plus `notes` and the 20 most recent `dev_events` rows inline (the detail
+  page is the primary destination now, not a collapsed accordion — no
+  reason to make it round-trip for its own activity feed the way the
+  list-page expand in Part A's original design would have).
+- **`GET /projects/stats`** — `{active_projects, active_clients,
+  commits_this_week, avg_progress}` for the KPI row. `commits_this_week` =
+  count of `dev_events` where `occurred_at >= now() - interval '7 days'`.
+  `avg_progress` = average `progress` across projects where `status =
+  'active'`.
+
+Part A's originally-planned `GET /projects/{id}/events` is superseded by
+folding recent events directly into `GET /projects/{id}` — not built
+separately, since the list page no longer has an inline expand to feed.
+
+### Frontend routing
+
+- `src/app/page.tsx` (home) — rewritten from the current client-grouped
+  list to the project grid + KPI row shown in the mockup. Server Component,
+  fetches `GET /projects` and `GET /projects/stats` in parallel.
+- `src/app/projects/[id]/page.tsx` — **new**. Server Component, fetches
+  `GET /projects/{id}`. Renders the detail layout from the mockup: header
+  (name, client, repo link), a progress+stats panel, a day-grouped activity
+  timeline, a roles panel (Dev / Client work, real names), a notes panel.
+- Both routes stay behind the existing `proxy.ts` auth check and forward
+  the session as a Bearer header exactly like the current home page does —
+  no change to the auth mechanism itself, this is purely a data-shape and
+  routing change.
+- Sidebar nav (from the mockup) added to the root layout — "Projects" is
+  the only live link this pass; "Clients", "Uni load", "Docs & КП", "Leads"
+  render but are inert placeholders (no route yet) — the mockup shows the
+  platform's real intended shape without implying features 3-5 are also
+  shipping now. Deliberate: matches "structure is information," not
+  decoration — these are real, named upcoming sections from
+  architecture.md, not invented chrome.
+
 ## Testing
 
 - Backend: `test_verify_github_signature` (valid/invalid/missing signature
@@ -187,10 +253,13 @@ instantly recognizable by color without turning the page into a rainbow.
 - `PUT /clients/projects/{id}/roles` — test that it replaces cleanly (old
   roles gone, new roles present) and handles an empty list (unassigning
   everyone from a role).
+- `GET /projects/stats` — test `commits_this_week` and `avg_progress` against
+  known seeded data (exact expected numbers, not just "returns 200").
 - Manual: real webhook delivery on `solura.agency` itself (this repo) after
-  registration — push a commit, confirm it lands in `dev_events`.
+  registration — push a commit, confirm it lands in `dev_events` and shows
+  up on both `GET /projects` (`last_activity_at`) and the detail page.
 - No frontend test suite exists yet (matches item #1's precedent) — manual
-  verification of the expand/collapse timeline and role/color rendering.
+  verification of the grid, detail page, roles, and color rendering.
 
 ## Error handling summary
 
