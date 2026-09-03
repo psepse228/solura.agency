@@ -7,17 +7,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import canvas, clients, tasks
+from app.routers import auth, canvas, clients, tasks
 
 app = FastAPI(title="Solura Eco API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_url] if settings.frontend_url else ["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(canvas.router, prefix="/canvas", tags=["canvas"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])
