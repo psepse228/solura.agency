@@ -32,6 +32,18 @@ Update the checkboxes as work lands; don't rewrite history above the divider.
       (`/projects/[id]`): progress, day-grouped commit timeline, dev/
       client-work roles, an "About" blurb, and a collaborative notepad
       anyone can post dated, attributed notes to.
+- [x] **In-app role editor** (2026-09-04): the Roles panel is an interactive
+      checkbox picker (`GET /members`, `PUT /clients/projects/{id}/roles`),
+      auto-saves — no more setting roles via raw API calls.
+- [x] **Client detail page** (2026-09-04): client name is a real link
+      everywhere it appears (home grid tiles, project detail header) →
+      `/clients/[id]` (`GET /clients/{id}`), showing that client's status
+      and full project grid — reachable even for a client with zero
+      projects yet.
+- [x] **Loading/perf polish** (2026-09-04): instant loading skeletons on
+      every navigation (`loading.tsx` for both routes), fade-in + hover
+      transitions, progress bars that actually fill-in-animate on mount
+      (`ProgressBar` client component) — no new dependencies.
 - [x] Deployed: backend on Railway (`Solura eco` project,
       `backend-production-7694a.up.railway.app`), frontend on Vercel
       (`solura-eco.vercel.app`), cross-wired (`FRONTEND_URL` /
