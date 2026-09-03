@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { NotesPanel } from "@/components/NotesPanel";
 import { ProgressBar } from "@/components/ProgressBar";
 import { RolesEditor } from "@/components/RolesEditor";
@@ -10,6 +11,14 @@ import { RolesEditor } from "@/components/RolesEditor";
 type Member = { id: string; full_name: string };
 type DevEvent = { id: string; actor: string | null; message: string; url: string | null; occurred_at: string };
 type Note = { id: string; body: string; author: string; created_at: string };
+type Document = {
+  id: string;
+  filename: string;
+  doc_type: string;
+  size_bytes: number;
+  uploaded_by_name: string | null;
+  created_at: string;
+};
 type ProjectDetail = {
   id: string;
   name: string;
@@ -51,6 +60,17 @@ async function getProjectNotes(id: string, token: string | undefined): Promise<N
   return (await res.json()) as Note[];
 }
 
+async function getProjectDocuments(id: string, token: string | undefined): Promise<Document[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) return [];
+  const res = await fetch(`${apiUrl}/projects/${id}/documents`, {
+    cache: "no-store",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) return [];
+  return (await res.json()) as Document[];
+}
+
 function formatDay(iso: string): string {
   const date = new Date(iso);
   const today = new Date();
@@ -65,7 +85,11 @@ function formatDay(iso: string): string {
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const token = (await cookies()).get("session")?.value;
-  const [project, notes] = await Promise.all([getProject(id, token), getProjectNotes(id, token)]);
+  const [project, notes, documents] = await Promise.all([
+    getProject(id, token),
+    getProjectNotes(id, token),
+    getProjectDocuments(id, token),
+  ]);
 
   if (!project) notFound();
 
@@ -190,6 +214,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           )}
 
           <NotesPanel projectId={project.id} initialNotes={notes ?? []} />
+
+          <DocumentsPanel projectId={project.id} initialDocuments={documents ?? []} />
         </div>
       </div>
     </div>
