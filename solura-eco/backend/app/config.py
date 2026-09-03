@@ -21,5 +21,7 @@ class Settings:
 
     frontend_url: str = os.getenv("FRONTEND_URL", "")
 
+    session_secret: str = os.getenv("SESSION_SECRET", "")
+
 
 settings = Settings()
