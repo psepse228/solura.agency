@@ -23,22 +23,36 @@ solura-eco/
   backend/            FastAPI service — Canvas sync, dev-activity API, Telegram webhook
     app/
       main.py          entrypoint
-      routers/         API routes (canvas, tasks, ...)
+      routers/         API routes (canvas, tasks, clients)
       services/        canvas_client, supabase_client
     requirements.txt
     .env.example
+  frontend/            Next.js (App Router) — Clients/Projects home screen
+    src/app/page.tsx    fetches GET /clients from the backend
+    .env.example
   supabase/
     migrations/        SQL migrations (schema: solura_eco, shared Supabase project)
+      0001_init.sql      members, Canvas sync tables, tasks_unified view
+      0002_clients_projects.sql   clients, projects — build order item #1
   docs/
     architecture.md     the actual plan — scope, roles, build order, open questions
     canvas-api-notes.md Canvas API specifics
 ```
 
-Frontend (Next.js on Vercel) is not built yet — will live at `solura-eco/frontend/`
-in this same repo (monorepo, see `docs/architecture.md`).
-
 ## Status
 
-Brainstormed, not built. This is a scaffold (schema drafted, backend skeleton,
-Supabase credentials wired locally) waiting on the actual build — see
-`docs/architecture.md` for what's decided and what's still open.
+Build order item #1 (Clients/Projects view) is scaffolded end to end: schema
+(`0002_clients_projects.sql`), backend CRUD (`/clients`, `POST
+/clients/{id}/projects`, `PATCH .../projects/{id}`), and a frontend home page
+that renders them with status pills and progress bars. Backend deps install
+and import cleanly; frontend builds clean. **Not yet wired to a real
+Supabase project** — no `.env` exists on any machine yet (correctly
+gitignored). Once `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` are set and both
+migrations applied, `uvicorn app.main:app --reload` + `npm run dev` should
+show real data.
+
+No Vercel project exists for this yet — `webster-td` on Vercel is a separate,
+unrelated project, not this one. See `docs/architecture.md` open questions.
+
+Next up per the build order: dev-activity auto-pull (GitHub + Vercel +
+Claude Code Remote sessions merged into a per-project timeline).

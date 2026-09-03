@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import canvas, tasks
+from app.routers import canvas, clients, tasks
 
 app = FastAPI(title="Solura Eco API")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 
 app.include_router(canvas.router, prefix="/canvas", tags=["canvas"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
+app.include_router(clients.router, prefix="/clients", tags=["clients"])
 
 
 @app.get("/health")
