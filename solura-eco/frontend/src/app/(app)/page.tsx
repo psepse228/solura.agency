@@ -8,6 +8,7 @@ type Member = { id: string; full_name: string };
 type Project = {
   id: string;
   name: string;
+  client_id: string;
   client_name: string | null;
   status: string;
   progress: number;
@@ -109,16 +110,21 @@ export default async function Home() {
                 const gradient = `linear-gradient(135deg, ${start}, ${end})`;
                 const people = [...p.dev_members, ...p.client_work_members].slice(0, 3);
                 return (
-                  <Link
+                  <div
                     key={p.id}
-                    href={`/projects/${p.id}`}
                     className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-bg2 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-lg hover:shadow-black/20"
                   >
                     <span className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundImage: gradient }} />
+                    <Link href={`/projects/${p.id}`} className="absolute inset-0 z-0" aria-label={`Open ${p.name}`} />
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="font-display text-base font-bold">{p.name}</div>
-                        <div className="mt-0.5 text-xs text-silver-dim">{p.client_name ?? "—"}</div>
+                        <Link
+                          href={`/clients/${p.client_id}`}
+                          className="relative z-10 mt-0.5 inline-block text-xs text-silver-dim hover:text-white hover:underline"
+                        >
+                          {p.client_name ?? "—"}
+                        </Link>
                       </div>
                       <span
                         className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
@@ -142,7 +148,7 @@ export default async function Home() {
                       </div>
                       <span className="text-[11px] text-silver-dim">{timeAgo(p.last_activity_at)}</span>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

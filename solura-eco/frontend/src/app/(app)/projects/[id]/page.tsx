@@ -13,6 +13,7 @@ type Note = { id: string; body: string; author: string; created_at: string };
 type ProjectDetail = {
   id: string;
   name: string;
+  client_id: string;
   client_name: string | null;
   status: string;
   progress: number;
@@ -85,7 +86,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{project.name}</h1>
           <div className="mt-1 flex items-center gap-2 text-sm text-silver">
-            <span>{project.client_name ?? "—"}</span>
+            <Link href={`/clients/${project.client_id}`} className="hover:text-white hover:underline">
+              {project.client_name ?? "—"}
+            </Link>
             {project.github_repo && (
               <>
                 <span>·</span>
