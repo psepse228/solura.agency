@@ -6,9 +6,10 @@ role gating — see architecture doc.
 """
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.auth.deps import require_session
 from app.services.supabase_client import get_client
 
 router = APIRouter()
@@ -54,7 +55,7 @@ class ClientUpdate(BaseModel):
 
 
 @router.get("")
-async def list_clients():
+async def list_clients(_: dict = Depends(require_session)):
     """Every client with its projects nested — this is the home-screen query."""
     db = get_client()
     clients = db.table("clients").select("*").order("name").execute().data
@@ -71,14 +72,14 @@ async def list_clients():
 
 
 @router.post("")
-async def create_client(payload: ClientIn):
+async def create_client(payload: ClientIn, _: dict = Depends(require_session)):
     db = get_client()
     result = db.table("clients").insert(payload.model_dump(exclude_none=True)).execute()
     return result.data[0]
 
 
 @router.patch("/{client_id}")
-async def update_client(client_id: str, payload: ClientUpdate):
+async def update_client(client_id: str, payload: ClientUpdate, _: dict = Depends(require_session)):
     db = get_client()
     updates = payload.model_dump(exclude_none=True)
     if not updates:
@@ -90,7 +91,7 @@ async def update_client(client_id: str, payload: ClientUpdate):
 
 
 @router.post("/{client_id}/projects")
-async def create_project(client_id: str, payload: ProjectIn):
+async def create_project(client_id: str, payload: ProjectIn, _: dict = Depends(require_session)):
     db = get_client()
     data = payload.model_dump(exclude_none=True)
     data["client_id"] = client_id
@@ -99,7 +100,7 @@ async def create_project(client_id: str, payload: ProjectIn):
 
 
 @router.patch("/projects/{project_id}")
-async def update_project(project_id: str, payload: ProjectUpdate):
+async def update_project(project_id: str, payload: ProjectUpdate, _: dict = Depends(require_session)):
     db = get_client()
     updates = payload.model_dump(exclude_none=True)
     if not updates:
