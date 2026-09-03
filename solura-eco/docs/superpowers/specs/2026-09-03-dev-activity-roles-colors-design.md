@@ -244,6 +244,48 @@ separately, since the list page no longer has an inline expand to feed.
   decoration — these are real, named upcoming sections from
   architecture.md, not invented chrome.
 
+## Part E — Collaborative notepad per project
+
+### Why
+
+Requested directly against the detail-page mockup: the static "About" blurb
+(`projects.notes`, one field, effectively one author) doesn't give the team
+a place to leave ongoing thoughts and ideas as work progresses. Distinct
+concept, not a rename of the existing field.
+
+### Data model
+
+```sql
+create table solura_eco.project_notes (
+  id          uuid primary key default gen_random_uuid(),
+  project_id  uuid not null references solura_eco.projects(id) on delete cascade,
+  member_id   uuid not null references solura_eco.members(id) on delete cascade,
+  body        text not null,
+  created_at  timestamptz not null default now()
+);
+```
+
+No edit/delete this pass — a note, once posted, stays (matches the flat,
+no-ownership-enforcement pattern the rest of this app uses for a 3-person
+team; add edit/delete later only if it turns out to matter in practice).
+
+### API
+
+`GET /projects/{id}/notes` — newest first, each row includes the author's
+name (joined from `members`). `POST /projects/{id}/notes` — body `{body:
+string}`, author is taken from the session (`member_id` in the verified
+token), not a client-supplied field — a client can't post a note as someone
+else.
+
+### UI
+
+A "Notepad" panel on the project detail page (below "About", not replacing
+it): a small always-visible textarea + "Add note" button, and the existing
+notes newest-first below it, each showing author + relative time. Posts via
+a `/api/projects/[id]/notes` Next.js route handler (same cross-domain-cookie
+reasoning as `/api/login`) rather than the browser calling the backend
+directly.
+
 ## Testing
 
 - Backend: `test_verify_github_signature` (valid/invalid/missing signature
