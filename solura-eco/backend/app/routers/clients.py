@@ -71,6 +71,28 @@ async def list_clients(_: dict = Depends(require_session)):
     return clients
 
 
+@router.get("/{client_id}")
+async def get_client_detail(client_id: str, _: dict = Depends(require_session)):
+    """One client with its projects nested -- same shape as list_clients'
+    per-client entries, scoped to one client instead of all of them."""
+    db = get_client()
+    result = db.table("clients").select("*").eq("id", client_id).execute().data
+    if not result:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    client = result[0]
+    projects = (
+        db.table("projects")
+        .select("*")
+        .eq("client_id", client_id)
+        .order("name")
+        .execute()
+        .data
+    )
+    client["projects"] = projects
+    return client
+
+
 @router.post("")
 async def create_client(payload: ClientIn, _: dict = Depends(require_session)):
     db = get_client()
