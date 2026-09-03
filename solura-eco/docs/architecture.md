@@ -50,7 +50,7 @@ Sequenced by what actually removes async pain fastest, not by technical ease:
 
 ## Architecture
 
-- **Frontend** — Next.js on Vercel. No project exists yet — create one when the frontend build starts (Vercel connector is authorized, so I can read/manage it once it exists). Decide monorepo (`solura-eco/frontend/`) vs. own repo when build starts — see "Open questions."
+- **Frontend** — Next.js on Vercel, as `solura-eco/frontend/` in this same repo (monorepo, matching the repo-location decision below) — no project exists yet, create one when frontend build starts.
 - **Backend** — FastAPI on Railway, same pattern as `cana-ai-tutor` / `lead-assistant`. Owns Canvas sync, the unified data API, the Telegram bot webhook. Frontend never touches Canvas or Telegram credentials directly.
 - **Database** — Supabase, reusing `cana-ai-tutor`'s project (ref `djtdvxtfhqhbqsymzkyq`), isolated in its own `solura_eco` schema (not `public`) — see `supabase/migrations/0001_init.sql`. Remember: `solura_eco` must be added to Settings → API → Exposed schemas in the Supabase dashboard, or PostgREST won't serve it.
 - **Integrations wired in for the dev-activity feed:**
@@ -65,10 +65,13 @@ Sequenced by what actually removes async pain fastest, not by technical ease:
 ## Open questions (unresolved — decide before or during build)
 
 1. **Lead extraction depth** — when the Telegram bot logs a client message, does it just surface the raw thread for manual triage, or use OpenAI to pull structured fields (name, what they want, urgency) automatically? Same automation-vs-manual tradeoff as the dev log, unresolved for leads specifically.
-2. **Repo location** — this project has outgrown "a folder inside the `solura.agency` marketing-site repo." Recommend spinning it into its own repo (`psepse228/solura-eco`) before serious build work starts, rather than continuing to nest it here. Naming is settled (**Solura Eco** — renamed from the working title "Webster TD" once scope was clear it's the whole agency's platform, not a uni side-project); the repo split is still pending.
-3. **Frontend repo** — own repo vs. monorepo folder, see above; leans toward own repo once #2 is settled anyway.
-4. **Auth mechanism** — flat 3-person access confirmed, but not yet decided: Supabase Auth with an email allowlist, or something even simpler given it's only 3 people forever (or until Solura scales, which would reopen the role-gating question).
-5. **Vercel project** — no Vercel project exists for Solura Eco yet. (`webster-td` on Vercel is a separate, unrelated project — not this one; it was only referenced early on for context, not as this platform's deployment.) Confirmed: all of Solura's Vercel projects, including the `solura-agency` marketing site this repo also contains, live under the `muhammadrizomirzaahmedov-7014s-projects` scope — create Solura Eco's project there once the frontend build starts, ideally named to match the repo (#2).
+2. **Auth mechanism** — flat 3-person access confirmed, but not yet decided: Supabase Auth with an email allowlist, or something even simpler given it's only 3 people forever (or until Solura scales, which would reopen the role-gating question).
+3. **Vercel project** — no Vercel project exists for Solura Eco yet. (`webster-td` on Vercel is a separate, unrelated project — not this one; it was only referenced early on for context, not as this platform's deployment.) Confirmed: all of Solura's Vercel projects, including the `solura-agency` marketing site this repo also contains, live under the `muhammadrizomirzaahmedov-7014s-projects` scope — create Solura Eco's project there once the frontend build starts, pointed at `solura-eco/frontend/` in this monorepo (see "Resolved" below), named to match.
+
+## Resolved
+
+- **Repo location** — `solura-eco/` stays in the `solura.agency` repo. This repo is no longer just the marketing-site repo — it's becoming the whole company repo (website + ecosystem platform together). Not splitting it out.
+- **Naming** — **Solura Eco**, settled. Renamed from the working title "Webster TD" once scope was clear it's the whole agency's platform, not a uni side-project.
 
 ## Data flow (target state)
 

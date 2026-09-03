@@ -34,8 +34,8 @@ solura-eco/
     canvas-api-notes.md Canvas API specifics
 ```
 
-Frontend (Next.js on Vercel) is not in this repo yet — see `docs/architecture.md`
-open questions for monorepo-vs-own-repo.
+Frontend (Next.js on Vercel) is not built yet — will live at `solura-eco/frontend/`
+in this same repo (monorepo, see `docs/architecture.md`).
 
 ## Status
 
