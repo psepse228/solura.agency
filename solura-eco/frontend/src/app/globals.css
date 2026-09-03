@@ -9,6 +9,7 @@
   --violet:  #818cf8;
   --white:   #f1f5f9;
   --silver:  #94a3b8;
+  --silver-dim: #5b6b82;
   --grad:    linear-gradient(135deg, #38bdf8, #818cf8);
 }
 
@@ -21,6 +22,7 @@
   --color-violet: var(--violet);
   --color-white: var(--white);
   --color-silver: var(--silver);
+  --color-silver-dim: var(--silver-dim);
   --font-sans: var(--font-dm-sans);
   --font-display: var(--font-syne);
 }
