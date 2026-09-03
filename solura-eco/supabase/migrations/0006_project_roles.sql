@@ -10,3 +10,4 @@ create table solura_eco.project_roles (
 );
 
 alter table solura_eco.project_roles enable row level security;
+-- RLS: no policies yet, same as every other table -- service role bypasses.

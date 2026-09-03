@@ -16,3 +16,4 @@ create table solura_eco.project_notes (
 create index project_notes_project_id_idx on solura_eco.project_notes(project_id, created_at desc);
 
 alter table solura_eco.project_notes enable row level security;
+-- RLS: no policies yet, same as every other table -- service role bypasses.
