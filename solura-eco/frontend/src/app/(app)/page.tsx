@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import { ProgressBar } from "@/components/ProgressBar";
+
 type Member = { id: string; full_name: string };
 type Project = {
   id: string;
@@ -127,12 +129,7 @@ export default async function Home() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg3">
-                        <div
-                          className="h-full rounded-full transition-[width] duration-700 ease-out"
-                          style={{ width: `${p.progress}%`, backgroundImage: gradient }}
-                        />
-                      </div>
+                      <ProgressBar progress={p.progress} gradient={gradient} />
                       <span className="w-8 shrink-0 text-right text-xs tabular-nums text-silver">
                         {p.progress}%
                       </span>

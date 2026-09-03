@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { NotesPanel } from "@/components/NotesPanel";
+import { ProgressBar } from "@/components/ProgressBar";
 import { RolesEditor } from "@/components/RolesEditor";
 
 type Member = { id: string; full_name: string };
@@ -106,9 +107,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <div className="rounded-2xl border border-border bg-bg2 p-5">
             <div className="mb-4 text-xs font-bold uppercase tracking-wide text-silver-dim">Progress</div>
             <div className="flex items-center gap-3.5">
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg3">
-                <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${project.progress}%`, backgroundImage: gradient }} />
-              </div>
+              <ProgressBar progress={project.progress} gradient={gradient} className="h-2" />
               <div className="font-display text-xl font-extrabold tabular-nums">{project.progress}%</div>
             </div>
             <div className="mt-3.5 flex gap-6 border-t border-white/5 pt-3.5">
