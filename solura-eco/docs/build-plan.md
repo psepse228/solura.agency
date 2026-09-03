@@ -79,8 +79,27 @@ sessions still open.**
 
 ## 3. Internal docs (КП/presentations) library
 
-**Status: not started.** Per-client document store — needs a decision on
-storage (Supabase Storage vs. something else) before schema work starts.
+**Status: SHIPPED — live in production.**
+
+- [x] Storage decided and built: private Supabase Storage bucket
+      `project-docs`, same Supabase project as everything else, keyed
+      `{project_id}/{filename}`. Downloads only ever go through short-lived
+      signed URLs, never a public link.
+- [x] Per-project, not per-client (a КП/presentation attaches to the
+      specific project it's for) — `documents` table (`0009_documents.sql`).
+- [x] Backend: `POST/GET /projects/{id}/documents`,
+      `GET /documents/{id}/download`, `DELETE /documents/{id}` — validates
+      doc type (КП/presentation/other), file type (PDF/PPTX/DOCX/XLSX/PNG/
+      JPEG), size (25MB cap); filename collisions get a random suffix
+      instead of silently overwriting.
+- [x] Frontend: a Documents panel on the project detail page — upload,
+      list (uploader + size + type badge), download, delete.
+- [x] Verified end-to-end against real Supabase Storage in production: real
+      file uploaded, downloaded byte-for-byte identical via a real signed
+      URL, deleted (both the Storage object and the DB row confirmed gone).
+- **Deliberately deferred:** document *generation* (auto-filling a КП/
+      presentation template for a client) — a meaningfully bigger feature,
+      its own future brainstorm once there's a real need for it.
 
 ## 4. Canvas sync — uni load
 
