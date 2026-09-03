@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { NotesPanel } from "@/components/NotesPanel";
+import { RolesEditor } from "@/components/RolesEditor";
 
 type Member = { id: string; full_name: string };
 type DevEvent = { id: string; actor: string | null; message: string; url: string | null; occurred_at: string };
@@ -57,28 +58,6 @@ function formatDay(iso: string): string {
   if (sameDay(date, today)) return "Today";
   if (sameDay(date, yesterday)) return "Yesterday";
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function RoleList({ title, members }: { title: string; members: Member[] }) {
-  return (
-    <div className="mb-4 last:mb-0">
-      <div className="mb-2 text-[11px] font-semibold text-silver-dim">{title}</div>
-      {members.length === 0 ? (
-        <p className="text-xs italic text-silver-dim">Unassigned</p>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {members.map((m) => (
-            <div key={m.id} className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-bg3 text-[10px] font-bold">
-                {m.full_name.slice(0, 1).toUpperCase()}
-              </div>
-              <span className="text-xs font-medium">{m.full_name}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -195,11 +174,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-border bg-bg2 p-5">
-            <div className="mb-4 text-xs font-bold uppercase tracking-wide text-silver-dim">Roles</div>
-            <RoleList title="Development" members={project.dev_members} />
-            <RoleList title="Client work" members={project.client_work_members} />
-          </div>
+          <RolesEditor
+            projectId={project.id}
+            initialDevMembers={project.dev_members}
+            initialClientWorkMembers={project.client_work_members}
+          />
 
           {project.notes && (
             <div className="rounded-2xl border border-border bg-bg2 p-5">
