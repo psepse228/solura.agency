@@ -68,7 +68,7 @@ Sequenced by what actually removes async pain fastest, not by technical ease:
 2. **Repo location** — this project has outgrown "a folder inside the `solura.agency` marketing-site repo." Recommend spinning it into its own repo (`psepse228/solura-eco`) before serious build work starts, rather than continuing to nest it here. Naming is settled (**Solura Eco** — renamed from the working title "Webster TD" once scope was clear it's the whole agency's platform, not a uni side-project); the repo split is still pending.
 3. **Frontend repo** — own repo vs. monorepo folder, see above; leans toward own repo once #2 is settled anyway.
 4. **Auth mechanism** — flat 3-person access confirmed, but not yet decided: Supabase Auth with an email allowlist, or something even simpler given it's only 3 people forever (or until Solura scales, which would reopen the role-gating question).
-5. **Vercel project** — no Vercel project exists for Solura Eco yet. (`webster-td` on Vercel is a separate, unrelated project — not this one; it was only referenced early on for context, not as this platform's deployment.) Create a fresh Vercel project once the frontend build starts, ideally named to match the repo (#2).
+5. **Vercel project** — no Vercel project exists for Solura Eco yet. (`webster-td` on Vercel is a separate, unrelated project — not this one; it was only referenced early on for context, not as this platform's deployment.) Confirmed: all of Solura's Vercel projects, including the `solura-agency` marketing site this repo also contains, live under the `muhammadrizomirzaahmedov-7014s-projects` scope — create Solura Eco's project there once the frontend build starts, ideally named to match the repo (#2).
 
 ## Data flow (target state)
 
