@@ -59,8 +59,11 @@ sessions still open.**
 - [x] Per-project detail page shows the real commit timeline, day-grouped
 - [ ] **Not done:** Vercel deployment/build-status events — architecture.md
       notes the connector is "authorized, not yet used in code"
-- [ ] **Not done:** Claude Code Remote sessions — needs the actual
-      `list_sessions`/`get_session` API shape checked before schema design
+- **Dropped 2026-09-04:** Claude Code Remote sessions — explicit decision,
+      GitHub commits are the dev-activity source going forward, not a
+      merged multi-source feed. `dev_events.source` stays generic
+      (`'github'` so far) in case this is revisited later, but no work is
+      planned against it.
 
 ## 3. Internal docs (КП/presentations) library
 
