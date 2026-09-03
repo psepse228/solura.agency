@@ -38,7 +38,12 @@ def main():
     )
 
     if result.returncode != 0:
-        print(f"FAILED for {repo}: {result.stderr}", file=sys.stderr)
+        # Don't print result.stderr verbatim -- it's GitHub's raw API error
+        # response, not something guaranteed to never echo back request
+        # data. Strip the secret out defensively even though it shouldn't
+        # appear there in practice.
+        safe_stderr = result.stderr.replace(secret, "***")
+        print(f"FAILED for {repo}: {safe_stderr}", file=sys.stderr)
         sys.exit(1)
 
     hook = json.loads(result.stdout)
