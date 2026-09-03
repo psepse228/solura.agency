@@ -1,4 +1,4 @@
-"""Webster TD backend — entrypoint.
+"""Solura Eco backend — entrypoint.
 
 Run locally: uvicorn app.main:app --reload
 Deployed on Railway the same way (see project README) as cana-ai-tutor.
@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import canvas, tasks
 
-app = FastAPI(title="Webster TD API")
+app = FastAPI(title="Solura Eco API")
 
 app.add_middleware(
     CORSMiddleware,

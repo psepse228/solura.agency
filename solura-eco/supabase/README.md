@@ -7,7 +7,7 @@ initialized here yet since there's no Supabase project to point it at.
 
 1. Create a Supabase project (or reuse one if we decide to share
    `cana-ai-tutor`'s — probably don't, keep client/university data separate).
-2. `supabase login && supabase link --project-ref <ref>` from `webster-td/`,
+2. `supabase login && supabase link --project-ref <ref>` from `solura-eco/`,
    or just paste `migrations/0001_init.sql` into the SQL editor for now.
 3. Put the project's `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` into
    `backend/.env` (see `backend/.env.example`) and, once the Railway service

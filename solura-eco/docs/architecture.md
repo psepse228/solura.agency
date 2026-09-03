@@ -1,4 +1,4 @@
-# Webster TD — plan
+# Solura Eco — plan
 
 Status: brainstormed, not built. This doc is the handoff — read this before writing
 any more code, on whatever machine picks it up next.
@@ -50,9 +50,9 @@ Sequenced by what actually removes async pain fastest, not by technical ease:
 
 ## Architecture
 
-- **Frontend** — Next.js on Vercel (`webster-td` project already exists there, Vercel connector now authorized). Decide monorepo (`webster-td/frontend/`) vs. own repo when build starts — see "Open questions."
+- **Frontend** — Next.js on Vercel. No project exists yet — create one when the frontend build starts (Vercel connector is authorized, so I can read/manage it once it exists). Decide monorepo (`solura-eco/frontend/`) vs. own repo when build starts — see "Open questions."
 - **Backend** — FastAPI on Railway, same pattern as `cana-ai-tutor` / `lead-assistant`. Owns Canvas sync, the unified data API, the Telegram bot webhook. Frontend never touches Canvas or Telegram credentials directly.
-- **Database** — Supabase, reusing `cana-ai-tutor`'s project (ref `djtdvxtfhqhbqsymzkyq`), isolated in its own `webster_td` schema (not `public`) — see `supabase/migrations/0001_init.sql`. Remember: `webster_td` must be added to Settings → API → Exposed schemas in the Supabase dashboard, or PostgREST won't serve it.
+- **Database** — Supabase, reusing `cana-ai-tutor`'s project (ref `djtdvxtfhqhbqsymzkyq`), isolated in its own `solura_eco` schema (not `public`) — see `supabase/migrations/0001_init.sql`. Remember: `solura_eco` must be added to Settings → API → Exposed schemas in the Supabase dashboard, or PostgREST won't serve it.
 - **Integrations wired in for the dev-activity feed:**
   - GitHub (commits/PRs per linked repo)
   - Vercel (deployments/build status) — connector authorized, not yet used in code
@@ -65,15 +65,15 @@ Sequenced by what actually removes async pain fastest, not by technical ease:
 ## Open questions (unresolved — decide before or during build)
 
 1. **Lead extraction depth** — when the Telegram bot logs a client message, does it just surface the raw thread for manual triage, or use OpenAI to pull structured fields (name, what they want, urgency) automatically? Same automation-vs-manual tradeoff as the dev log, unresolved for leads specifically.
-2. **Repo location** — this project has outgrown "a folder inside the `solura.agency` marketing-site repo." Recommend spinning it into its own repo (e.g. `psepse228/webster-td` or a Solura-ops-appropriate name) before serious build work starts, rather than continuing to nest it here.
-3. **Naming** — "Webster TD" undersells what this became (full Solura ops platform, not a uni side-project). Worth renaming before the repo/Vercel project structure hardens.
-4. **Frontend repo** — own repo vs. monorepo folder, see above; leans toward own repo once #2 is settled anyway.
-5. **Auth mechanism** — flat 3-person access confirmed, but not yet decided: Supabase Auth with an email allowlist, or something even simpler given it's only 3 people forever (or until Solura scales, which would reopen the role-gating question).
+2. **Repo location** — this project has outgrown "a folder inside the `solura.agency` marketing-site repo." Recommend spinning it into its own repo (`psepse228/solura-eco`) before serious build work starts, rather than continuing to nest it here. Naming is settled (**Solura Eco** — renamed from the working title "Webster TD" once scope was clear it's the whole agency's platform, not a uni side-project); the repo split is still pending.
+3. **Frontend repo** — own repo vs. monorepo folder, see above; leans toward own repo once #2 is settled anyway.
+4. **Auth mechanism** — flat 3-person access confirmed, but not yet decided: Supabase Auth with an email allowlist, or something even simpler given it's only 3 people forever (or until Solura scales, which would reopen the role-gating question).
+5. **Vercel project** — no Vercel project exists for Solura Eco yet. (`webster-td` on Vercel is a separate, unrelated project — not this one; it was only referenced early on for context, not as this platform's deployment.) Create a fresh Vercel project once the frontend build starts, ideally named to match the repo (#2).
 
 ## Data flow (target state)
 
 ```
-Canvas API  --(poll, per member)-->  backend /sync  --> Supabase (webster_td)
+Canvas API  --(poll, per member)-->  backend /sync  --> Supabase (solura_eco)
 GitHub + Vercel + Claude Code Remote --(poll/webhook)--> backend --> activity timeline
 Telegram (Business API, client DMs) --> backend webhook --> lead/client records
                                                               |

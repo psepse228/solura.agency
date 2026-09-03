@@ -1,7 +1,7 @@
 """Shared Supabase client, service-role key — backend only, never expose to frontend.
 
 This project's Supabase instance is shared with cana-ai-tutor, so every query
-is scoped to the webster_td schema (see supabase/migrations/0001_init.sql) —
+is scoped to the solura_eco schema (see supabase/migrations/0001_init.sql) —
 never touches `public`, where cana-ai-tutor's tables live.
 """
 from functools import lru_cache
@@ -10,7 +10,7 @@ from supabase import Client, create_client
 
 from app.config import settings
 
-SCHEMA = "webster_td"
+SCHEMA = "solura_eco"
 
 
 @lru_cache
