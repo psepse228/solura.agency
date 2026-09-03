@@ -1,145 +1,157 @@
+// solura-eco/frontend/src/app/(app)/page.tsx
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { SignOutButton } from "@/components/SignOutButton";
 
+type Member = { id: string; full_name: string };
 type Project = {
   id: string;
   name: string;
+  client_name: string | null;
   status: string;
   progress: number;
-  github_repo: string | null;
+  accent_start: string | null;
+  accent_end: string | null;
+  dev_members: Member[];
+  client_work_members: Member[];
+  last_activity_at: string | null;
+};
+type Stats = {
+  active_projects: number;
+  active_clients: number;
+  commits_this_week: number;
+  avg_progress: number;
 };
 
-type Client = {
-  id: string;
-  name: string;
-  status: string;
-  projects: Project[];
-};
+const DEFAULT_GRADIENT: [string, string] = ["#38bdf8", "#818cf8"];
 
-const STATUS_STYLES: Record<string, string> = {
-  active: "bg-cyan/15 text-cyan",
-  paused: "bg-amber-500/15 text-amber-400",
-  completed: "bg-silver/15 text-silver",
-  dropped: "bg-silver/15 text-silver",
-  churned: "bg-red-500/15 text-red-400",
-};
-
-async function getClients(): Promise<{ clients: Client[] | null; error: string | null }> {
+async function fetchJSON<T>(path: string, token: string | undefined): Promise<T | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    return { clients: null, error: "NEXT_PUBLIC_API_URL is not set (see .env.example)." };
-  }
-
-  const token = (await cookies()).get("session")?.value;
-
+  if (!apiUrl) return null;
   try {
-    const res = await fetch(`${apiUrl}/clients`, {
+    const res = await fetch(`${apiUrl}${path}`, {
       cache: "no-store",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    if (!res.ok) {
-      return { clients: null, error: `Backend returned ${res.status}` };
-    }
-    return { clients: await res.json(), error: null };
+    if (!res.ok) return null;
+    return (await res.json()) as T;
   } catch {
-    return { clients: null, error: `Could not reach backend at ${apiUrl}` };
+    return null;
   }
 }
 
-function StatusPill({ status }: { status: string }) {
+function timeAgo(iso: string | null): string {
+  if (!iso) return "no activity";
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+function Avatar({ member }: { member: Member }) {
   return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-        STATUS_STYLES[status] ?? "bg-silver/15 text-silver"
-      }`}
+    <div
+      className="-ml-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-bg2 bg-bg3 text-[9px] font-bold text-white outline outline-1 outline-border first:ml-0"
+      title={member.full_name}
     >
-      {status}
-    </span>
+      {member.full_name.slice(0, 1).toUpperCase()}
+    </div>
   );
 }
 
 export default async function Home() {
-  const { clients, error } = await getClients();
+  const token = (await cookies()).get("session")?.value;
+  const [projects, stats] = await Promise.all([
+    fetchJSON<Project[]>("/projects", token),
+    fetchJSON<Stats>("/projects/stats", token),
+  ]);
 
   return (
-    <div className="flex flex-1 flex-col bg-bg">
-      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-12 sm:px-10">
-        <header className="mb-10 flex items-start justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-white">
-              Solura Eco
-            </h1>
-            <p className="mt-1 text-sm text-silver">
-              Every active client, at a glance — status and progress, no pinging required.
-            </p>
-          </div>
-          <SignOutButton />
-        </header>
+    <div className="px-8 py-8">
+      <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">Projects</h1>
+      <p className="mt-1 text-sm text-silver">
+        Every project Solura&apos;s running, at a glance — click one for the full picture.
+      </p>
 
-        {error && (
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
-            {error} — showing nothing until the backend is reachable.
-          </div>
-        )}
-
-        {clients && clients.length === 0 && (
-          <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-silver">
-            No clients yet. Add one via <code className="font-mono">POST /clients</code>.
-          </div>
-        )}
-
-        {clients && clients.length > 0 && (
-          <ul className="flex flex-col gap-4">
-            {clients.map((client) => (
-              <li
-                key={client.id}
-                className="rounded-xl border border-border bg-bg2 p-5"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="font-display font-semibold text-white">{client.name}</h2>
-                  <StatusPill status={client.status} />
-                </div>
-
-                {client.projects.length > 0 ? (
-                  <ul className="mt-3 flex flex-col gap-2">
-                    {client.projects.map((project) => (
-                      <li
-                        key={project.id}
-                        className="flex items-center justify-between gap-3 rounded-lg bg-bg3 px-3 py-2 text-sm"
-                      >
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-white">{project.name}</span>
-                          {project.github_repo && (
-                            <Link
-                              href={`https://github.com/${project.github_repo}`}
-                              target="_blank"
-                              className="shrink-0 text-xs text-silver hover:text-white"
-                            >
-                              {project.github_repo}
-                            </Link>
-                          )}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-3">
-                          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-border">
-                            <div
-                              className="h-full rounded-full bg-[image:var(--grad)]"
-                              style={{ width: `${project.progress}%` }}
-                            />
-                          </div>
-                          <StatusPill status={project.status} />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-3 text-sm text-silver">No projects yet.</p>
-                )}
-              </li>
+      {!projects || !stats ? (
+        <div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
+          Could not reach the backend — showing nothing until it&apos;s reachable.
+        </div>
+      ) : (
+        <>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {(
+              [
+                ["Active projects", stats.active_projects],
+                ["Active clients", stats.active_clients],
+                ["Commits this week", stats.commits_this_week],
+                ["Avg. progress", `${stats.avg_progress}%`],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label} className="rounded-xl border border-border bg-bg2 p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-silver-dim">{label}</div>
+                <div className="mt-1 font-display text-2xl font-extrabold">{value}</div>
+              </div>
             ))}
-          </ul>
-        )}
-      </main>
+          </div>
+
+          {projects.length === 0 ? (
+            <div className="mt-6 rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-silver">
+              No projects yet.
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((p) => {
+                const [start, end] =
+                  p.accent_start && p.accent_end ? [p.accent_start, p.accent_end] : DEFAULT_GRADIENT;
+                const gradient = `linear-gradient(135deg, ${start}, ${end})`;
+                const people = [...p.dev_members, ...p.client_work_members].slice(0, 3);
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/projects/${p.id}`}
+                    className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-bg2 p-4 transition hover:border-white/15"
+                  >
+                    <span className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundImage: gradient }} />
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-display text-base font-bold">{p.name}</div>
+                        <div className="mt-0.5 text-xs text-silver-dim">{p.client_name ?? "—"}</div>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
+                          p.status === "active" ? "bg-cyan/15 text-cyan" : "bg-silver/15 text-silver"
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg3">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${p.progress}%`, backgroundImage: gradient }}
+                        />
+                      </div>
+                      <span className="w-8 shrink-0 text-right text-xs tabular-nums text-silver">
+                        {p.progress}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex">
+                        {people.map((m) => (
+                          <Avatar key={m.id} member={m} />
+                        ))}
+                      </div>
+                      <span className="text-[11px] text-silver-dim">{timeAgo(p.last_activity_at)}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
