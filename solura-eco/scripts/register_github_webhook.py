@@ -28,7 +28,7 @@ def main():
         [
             "gh", "api", f"repos/{repo}/hooks",
             "-f", "name=web",
-            "-f", "active=true",
+            "-F", "active=true",  # -F (not -f) so gh sends a real boolean, not the string "true"
             "-f", "events[]=push",
             "-f", f"config[url]={webhook_url}",
             "-f", "config[content_type]=json",
