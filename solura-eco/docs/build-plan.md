@@ -5,14 +5,16 @@ Update the checkboxes as work lands; don't rewrite history above the divider.
 
 ## 1. Clients/Projects view — home screen
 
-**Status: SHIPPED — live in production, in daily-use shape.**
+**Status: SHIPPED — live in production, projects-first, in daily-use shape.**
 
-- [x] Schema: `clients` + `projects` tables (`0002_clients_projects.sql`)
+- [x] Schema: `clients` + `projects` tables (`0002_clients_projects.sql`),
+      later extended with `project_roles`, `project_notes`, and
+      `accent_start`/`accent_end` colors (`0006`-`0008`)
 - [x] Grants for the newly-exposed `solura_eco` schema (`0003_grants.sql`)
 - [x] Backend: `GET/POST /clients`, `PATCH /clients/{id}`,
-      `POST /clients/{id}/projects`, `PATCH /clients/projects/{id}`
-- [x] Frontend: home page renders clients with nested projects, status pills,
-      progress bars; degrades gracefully with no backend configured
+      `POST /clients/{id}/projects`, `PATCH /clients/projects/{id}`,
+      `PUT /clients/projects/{id}/roles`, plus the `GET /projects` family
+      (list/detail/stats/notes) that now backs the actual UI
 - [x] Auth resolved (architecture.md open question 2): 3 individual
       username/password logins (Rizo, Jonik, Dior), not Supabase Auth, not a
       shared password. Session tokens use the exact `base64url(payload).hex(hmac)`
@@ -21,28 +23,44 @@ Update the checkboxes as work lands; don't rewrite history above the divider.
       `SESSION_SECRET` is ever unset in production.
 - [x] Reskinned to match solura-agency.com's actual brand tokens (`#080c12`
       background, cyan/violet gradient, Syne + DM Sans) instead of the
-      generic Next.js scaffold.
+      generic Next.js scaffold; each project also carries its own real
+      accent color sampled from its actual product code (Argus crimson,
+      Athena AI's IHL navy/orange, etc — see item #2's design spec Part C).
+- [x] **Projects-first IA** (2026-09-04): home screen is a project grid, not
+      a client-grouped list — client is metadata on a project, not the
+      top-level grouping. Each project has a real detail page
+      (`/projects/[id]`): progress, day-grouped commit timeline, dev/
+      client-work roles, an "About" blurb, and a collaborative notepad
+      anyone can post dated, attributed notes to.
 - [x] Deployed: backend on Railway (`Solura eco` project,
       `backend-production-7694a.up.railway.app`), frontend on Vercel
       (`solura-eco.vercel.app`), cross-wired (`FRONTEND_URL` /
       `NEXT_PUBLIC_API_URL` / matching `SESSION_SECRET` on both sides).
 - [x] Real data seeded: Ulkan Development (Argus), Solura (Tender Agent,
-      Cortège, solura-agency.com) — sourced from the wiki, not invented.
+      Cortège, Athena AI, solura-agency.com) — sourced from the wiki and
+      each product's real code, not invented.
 - [x] Verified end-to-end in production: login → session cookie → real data
       renders for all 3 real logins.
 
 ## 2. Dev-activity auto-pull
 
-**Status: not started.**
+**Status: GitHub commits SHIPPED. Vercel deployments and Claude Code Remote
+sessions still open.**
 
-GitHub (commits/PRs per linked repo) + Vercel (deployments/build status) +
-Claude Code Remote sessions, merged into a per-project timeline. Needs:
-- A `dev_events` table (or similar) keyed to `projects.id`
-- A GitHub App or PAT + webhook (or polling) per linked repo
-- Vercel API integration — architecture.md notes the connector is
-  "authorized, not yet used in code"
-- Claude Code Remote's `list_sessions`/`get_session` — needs the actual API
-  shape checked before schema design
+- [x] Generic `dev_events` table (`0005_dev_events.sql`) — source-agnostic,
+      not GitHub-specific, so Vercel/Claude Code Remote land in the same
+      table later
+- [x] `POST /webhooks/github` — signature-verified (HMAC-SHA256,
+      constant-time compare), ingests `push` events, upserts commits keyed
+      to whichever project's `github_repo` matches
+- [x] Webhooks registered on all 4 tracked repos (Argus, tender-agent-app,
+      cano-ai-tutor, solura.agency) via `scripts/register_github_webhook.py`
+      (`gh` CLI, no raw token in the script)
+- [x] Per-project detail page shows the real commit timeline, day-grouped
+- [ ] **Not done:** Vercel deployment/build-status events — architecture.md
+      notes the connector is "authorized, not yet used in code"
+- [ ] **Not done:** Claude Code Remote sessions — needs the actual
+      `list_sessions`/`get_session` API shape checked before schema design
 
 ## 3. Internal docs (КП/presentations) library
 
