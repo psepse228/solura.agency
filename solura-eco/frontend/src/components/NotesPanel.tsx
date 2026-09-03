@@ -52,7 +52,7 @@ export function NotesPanel({ projectId, initialNotes }: { projectId: string; ini
         <button
           type="submit"
           disabled={!draft.trim() || submitting}
-          className="self-end rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+          className="self-end rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/[0.05] disabled:opacity-40 disabled:hover:bg-transparent"
         >
           {submitting ? "Adding…" : "Add note"}
         </button>
@@ -63,7 +63,7 @@ export function NotesPanel({ projectId, initialNotes }: { projectId: string; ini
       ) : (
         <div className="flex flex-col gap-3">
           {notes.map((n) => (
-            <div key={n.id} className="border-t border-white/5 pt-3 first:border-0 first:pt-0">
+            <div key={n.id} className="animate-fade-in-up border-t border-white/5 pt-3 first:border-0 first:pt-0">
               <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-white">{n.body}</p>
               <p className="mt-1 text-[11px] text-silver-dim">
                 <b className="font-medium text-silver">{n.author}</b> · {timeAgo(n.created_at)}

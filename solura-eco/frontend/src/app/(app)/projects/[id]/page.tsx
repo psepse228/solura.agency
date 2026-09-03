@@ -74,7 +74,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   let lastDay = "";
 
   return (
-    <div className="px-8 py-8">
+    <div className="px-8 py-8 animate-fade-in-up">
       <Link href="/" className="mb-5 inline-flex items-center gap-1.5 text-xs text-silver hover:text-white">
         ← All projects
       </Link>
@@ -107,7 +107,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <div className="mb-4 text-xs font-bold uppercase tracking-wide text-silver-dim">Progress</div>
             <div className="flex items-center gap-3.5">
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg3">
-                <div className="h-full rounded-full" style={{ width: `${project.progress}%`, backgroundImage: gradient }} />
+                <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${project.progress}%`, backgroundImage: gradient }} />
               </div>
               <div className="font-display text-xl font-extrabold tabular-nums">{project.progress}%</div>
             </div>
@@ -140,7 +140,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           {day}
                         </div>
                       )}
-                      <div className="flex gap-3 border-b border-white/5 py-2 last:border-0">
+                      <div className="flex gap-3 border-b border-white/5 py-2 transition-colors last:border-0 hover:bg-white/[0.02]">
                         <span
                           className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
                           style={{ backgroundImage: gradient }}

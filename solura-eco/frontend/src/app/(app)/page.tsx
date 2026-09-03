@@ -67,7 +67,7 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="px-8 py-8">
+    <div className="px-8 py-8 animate-fade-in-up">
       <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">Projects</h1>
       <p className="mt-1 text-sm text-silver">
         Every project Solura&apos;s running, at a glance — click one for the full picture.
@@ -110,7 +110,7 @@ export default async function Home() {
                   <Link
                     key={p.id}
                     href={`/projects/${p.id}`}
-                    className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-bg2 p-4 transition hover:border-white/15"
+                    className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-bg2 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-lg hover:shadow-black/20"
                   >
                     <span className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundImage: gradient }} />
                     <div className="flex items-start justify-between gap-2">
@@ -129,7 +129,7 @@ export default async function Home() {
                     <div className="flex items-center gap-2">
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg3">
                         <div
-                          className="h-full rounded-full"
+                          className="h-full rounded-full transition-[width] duration-700 ease-out"
                           style={{ width: `${p.progress}%`, backgroundImage: gradient }}
                         />
                       </div>

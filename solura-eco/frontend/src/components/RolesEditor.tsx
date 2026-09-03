@@ -31,7 +31,7 @@ function RoleCheckboxGroup({
       ) : (
         <div className="flex flex-col gap-2">
           {allMembers.map((m) => (
-            <label key={m.id} className="flex items-center gap-2 text-xs font-medium">
+            <label key={m.id} className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs font-medium transition-colors hover:bg-white/[0.03]">
               <input
                 type="checkbox"
                 checked={selectedIds.has(m.id)}
