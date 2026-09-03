@@ -25,3 +25,13 @@ class Settings:
 
 
 settings = Settings()
+
+if settings.environment == "production" and not settings.session_secret:
+    # Fail loudly at startup rather than silently signing/verifying every
+    # session token with an empty-string key -- that would be a full auth
+    # bypass (anyone could forge a valid token) if SESSION_SECRET is ever
+    # left unset on a real deploy (e.g. a forgotten Railway env var).
+    raise RuntimeError(
+        "SESSION_SECRET is not set in production. Refusing to start with an "
+        "empty session-signing key -- see .env.example."
+    )
