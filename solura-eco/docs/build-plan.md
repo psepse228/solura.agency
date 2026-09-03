@@ -56,13 +56,16 @@ service stub and `courses`/`assignments`/`submissions` tables exist
 (`0001_init.sql`), `/canvas` router is a placeholder. Not wired to real
 Canvas tokens or tested against Webster's instance yet.
 
-## 5. Telegram Business bot — lead capture
+## 5. Telegram Business bot — lead monitoring
 
-**Status: not started.** Explicitly last in the build order — genuinely new
-infrastructure, plus a manual Business API connection step on the Solura
-Telegram account regardless of when the code gets written. A token was
-mentioned as already issued but shared in a chat transcript — **rotate it
-via BotFather before it's used for anything real.**
+**Status: not started.** Rescoped 2026-09-03: **not** manual lead capture —
+a bot integrated to read client conversations and keep client/lead records
+updated automatically (self-updating, not a form for someone to fill in).
+Explicitly last in the build order — genuinely new infrastructure, plus a
+manual Business API connection step on the Solura Telegram account
+regardless of when the code gets written. A token was mentioned as already
+issued but shared in a chat transcript — **rotate it via BotFather before
+it's used for anything real.**
 
 ---
 
