@@ -5,7 +5,7 @@ Update the checkboxes as work lands; don't rewrite history above the divider.
 
 ## 1. Clients/Projects view — home screen
 
-**Status: scaffolded and verified live, not yet used with real data.**
+**Status: SHIPPED — live in production, in daily-use shape.**
 
 - [x] Schema: `clients` + `projects` tables (`0002_clients_projects.sql`)
 - [x] Grants for the newly-exposed `solura_eco` schema (`0003_grants.sql`)
@@ -13,18 +13,23 @@ Update the checkboxes as work lands; don't rewrite history above the divider.
       `POST /clients/{id}/projects`, `PATCH /clients/projects/{id}`
 - [x] Frontend: home page renders clients with nested projects, status pills,
       progress bars; degrades gracefully with no backend configured
-- [x] Verified end-to-end against the real Supabase instance
-      (`djtdvxtfhqhbqsymzkyq`, `solura_eco` schema) — both servers boot,
-      `/clients` returns `200` with real (currently empty) data
-- [ ] **Not done:** auth/login — anyone who can reach the frontend can hit
-      the API right now. Open question 2 in architecture.md (Supabase Auth
-      email allowlist vs. something simpler) is still unresolved — needs a
-      decision before this goes anywhere but localhost.
-- [ ] **Not done:** deploying either service (Vercel project for the
-      frontend, Railway service inside the already-created but empty
-      "Solura eco" project for the backend)
-- [ ] **Not done:** seeding real client/project rows (Argus, Tender Agent,
-      Cortège, cana-ai-tutor, this marketing site, etc.) — currently 0 rows
+- [x] Auth resolved (architecture.md open question 2): 3 individual
+      username/password logins (Rizo, Jonik, Dior), not Supabase Auth, not a
+      shared password. Session tokens use the exact `base64url(payload).hex(hmac)`
+      format Cortège/Tender Agent already share — ported, not reinvented (see
+      `0004_auth.sql`, `app/auth/`, `frontend/src/proxy.ts`). Fails closed if
+      `SESSION_SECRET` is ever unset in production.
+- [x] Reskinned to match solura-agency.com's actual brand tokens (`#080c12`
+      background, cyan/violet gradient, Syne + DM Sans) instead of the
+      generic Next.js scaffold.
+- [x] Deployed: backend on Railway (`Solura eco` project,
+      `backend-production-7694a.up.railway.app`), frontend on Vercel
+      (`solura-eco.vercel.app`), cross-wired (`FRONTEND_URL` /
+      `NEXT_PUBLIC_API_URL` / matching `SESSION_SECRET` on both sides).
+- [x] Real data seeded: Ulkan Development (Argus), Solura (Tender Agent,
+      Cortège, solura-agency.com) — sourced from the wiki, not invented.
+- [x] Verified end-to-end in production: login → session cookie → real data
+      renders for all 3 real logins.
 
 ## 2. Dev-activity auto-pull
 
