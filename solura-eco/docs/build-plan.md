@@ -110,14 +110,47 @@ Canvas tokens or tested against Webster's instance yet.
 
 ## 5. Telegram Business bot — lead monitoring
 
-**Status: not started.** Rescoped 2026-09-03: **not** manual lead capture —
-a bot integrated to read client conversations and keep client/lead records
-updated automatically (self-updating, not a form for someone to fill in).
-Explicitly last in the build order — genuinely new infrastructure, plus a
-manual Business API connection step on the Solura Telegram account
-regardless of when the code gets written. A token was mentioned as already
-issued but shared in a chat transcript — **rotate it via BotFather before
-it's used for anything real.**
+**Status: code SHIPPED, live in production — blocked on manual setup only.**
+
+Ported from Argus's real, working Telegram Business integration
+(`psepse228/Argus`), deliberately smaller: read-only monitoring, no
+reply-from-app, no chat UI. Rescoped 2026-09-03: not manual lead capture —
+the bot reads conversations and updates client records automatically.
+
+- [x] `client_notes` table (`0010`) — necessary since a freshly
+      auto-created client may have zero projects yet, so there's nowhere on
+      the per-project notepad to post anything.
+- [x] `telegram_connections`/`telegram_conversations`/`telegram_messages`
+      tables (`0011`).
+- [x] Phone normalization + webhook signature verification ported from
+      Argus, both TDD.
+- [x] `POST /webhooks/telegram-business` — resolves each message to a
+      client (phone match if a contact card was shared, otherwise
+      auto-creates one from the Telegram profile), posts a GPT-4o summary +
+      next-step as a `client_notes` row. Two real bugs caught in review and
+      fixed: malformed-payload 500s (now graceful 200/skip) and a race
+      where two redelivered webhooks for the same new chat could both
+      create a client before the second's conversation insert conflicted
+      (now recovers cleanly, no orphaned client).
+- [x] `NotesPanel` generalized (was project-only) to serve both projects
+      and clients — same component, an `apiPath` prop, no duplication.
+      Client detail page now has a Notepad, fed by both manual notes and
+      auto-posted Telegram summaries in one feed.
+- [x] `TELEGRAM_WEBHOOK_SECRET` set on Railway.
+- [ ] **Blocked on you, not code:** rotate the bot token via BotFather (the
+      previous one was shared in a chat transcript — never reuse it), set
+      the new `TELEGRAM_BOT_TOKEN` on Railway, connect Telegram Business on
+      the dedicated Solura account (Premium + Settings → Telegram Business
+      → Chatbots), then run
+      `python scripts/register_telegram_webhook.py <token> https://backend-production-7694a.up.railway.app/webhooks/telegram-business <TELEGRAM_WEBHOOK_SECRET>`.
+      A real `OPENAI_API_KEY` also isn't set yet — without one, messages
+      still save but no summary gets posted (degrades gracefully, not a
+      hard blocker).
+- **Known limitation, carried over honestly from Argus's own code:**
+      Telegram only exposes a phone number when a contact card is
+      explicitly shared — rare in practice. Most new conversations will
+      auto-create a client from just the Telegram profile name, not match
+      an existing one.
 
 ---
 
