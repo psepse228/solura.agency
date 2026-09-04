@@ -171,3 +171,44 @@ async def update_project_roles(
         db.table("project_roles").insert(rows).execute()
 
     return {"ok": True}
+
+
+class ClientNoteIn(BaseModel):
+    body: str
+
+
+@router.get("/{client_id}/notes")
+async def list_client_notes(client_id: str, _: dict = Depends(require_session)):
+    db = get_client()
+    notes = (
+        db.table("client_notes")
+        .select("id,body,created_at,author_label,members(id,full_name)")
+        .eq("client_id", client_id)
+        .order("created_at", desc=True)
+        .execute()
+        .data
+    )
+    for n in notes:
+        member = n.pop("members", None)
+        n["author"] = member["full_name"] if member else (n.pop("author_label", None) or "Unknown")
+    return notes
+
+
+@router.post("/{client_id}/notes")
+async def create_client_note(
+    client_id: str, payload: ClientNoteIn, session: dict = Depends(require_session)
+):
+    if not payload.body.strip():
+        raise HTTPException(status_code=400, detail="Note body cannot be empty")
+
+    db = get_client()
+    row = {
+        "client_id": client_id,
+        "member_id": session["member_id"],
+        "body": payload.body.strip(),
+    }
+    result = db.table("client_notes").insert(row).execute().data[0]
+
+    member = db.table("members").select("full_name").eq("id", session["member_id"]).execute().data
+    result["author"] = member[0]["full_name"] if member else session["username"]
+    return result
