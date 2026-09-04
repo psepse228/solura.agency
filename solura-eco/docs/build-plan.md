@@ -103,8 +103,8 @@ sessions still open.**
 
 ## 4. Canvas sync — uni load
 
-**Status: code SHIPPED, live in production — blocked on a real token paste
-to fully verify, same shape as item #5's remaining blocker.**
+**Status: SHIPPED and verified end-to-end in production — real Canvas
+token saved, real courses/grades/assignments confirmed pulling correctly.**
 
 - [x] Self-service token entry: `POST /canvas/token` (session-protected),
       verifies the token against Canvas's real `GET /users/self` before
@@ -145,14 +145,53 @@ to fully verify, same shape as item #5's remaining blocker.**
       Server Component happens to execute in.
 - [x] `CANVAS_TOKEN_ENCRYPTION_KEY` and `CANVAS_SYNC_SECRET` generated and
       set on Railway; `canvas-sync-cron` created and deployed successfully.
-- [ ] **Not yet verified: a real Canvas token.** None of the three of you
-      has pasted a real personal access token into `/uni-load` yet, so the
-      sync has nothing to pull and this hasn't been checked against
-      Webster's actual Canvas instance end-to-end. Paste a token
-      (`Account → Settings → New Access Token` on Webster's Canvas) at
-      `/uni-load` whenever convenient, then check back after the next
-      30-minute sync (or ask me to trigger one manually) to confirm real
-      assignments/due dates/status show up correctly.
+- [x] **Verified with a real token** (2026-09-05): a real personal access
+      token saved via `/uni-load`, manually-triggered sync pulled real
+      courses/assignments/grades from Webster's actual Canvas instance —
+      confirmed matching real percentages (e.g. 83.33%, 100%, 24.55%, 20%)
+      against what the member's own Canvas account shows.
+- [x] **Courses + grades grid** (2026-09-05): `/uni-load` now shows a
+      "Courses" section above the assignment list — each course as a card
+      with the member's real Canvas color (`GET /users/self/colors`, one
+      call per sync) and current grade percentage
+      (`include[]=total_scores` on the course-list call), "N/A" where
+      ungraded. Migration `0012` adds `courses.current_score`/`.color`
+      (nullable, no data loss). Matches the reference layout from TD
+      Webster (a sibling Solura project) the user pointed to. Files/Modules
+      access was explicitly scoped out for this pass — a Canvas token does
+      carry access to both, a future addition if ever wanted.
+
+## Sidebar urgent panel
+
+Not one of the five numbered build-order items — a cross-cutting addition
+to the app shell, requested after seeing item #4 in action.
+
+**Status: SHIPPED, live in production (2026-09-05).**
+
+- [x] `GET /me/urgent` merges three sources into one capped, sorted
+      response: the viewer's own Canvas deadlines (due within 48h or
+      overdue, per-member), stale active projects (no commit in 7+ days
+      or none ever, team-wide), and clients with a fresh Telegram message
+      in the last 24h (team-wide) — the last source is honestly scoped:
+      the Telegram integration is read-only monitoring with no "team
+      replied" event tracked anywhere, so this flags "something new here"
+      rather than falsely claiming to detect an unanswered message.
+      Always empty until Telegram is connected (item #5's remaining
+      blocker), not an error.
+- [x] Sidebar shows one merged, urgency-sorted list (not three separate
+      sub-lists) below the nav, hides entirely when there's nothing
+      urgent or the fetch fails — never blocks the rest of the app shell
+      from rendering.
+- [x] Two real bugs caught in review and fixed before shipping: the first
+      pass's sort keys mixed incompatible scales (a small integer for
+      stale-project "urgency" vs. real epoch-ms timestamps for the other
+      two sources), so stale projects always outranked genuinely
+      time-critical Canvas deadlines regardless of actual urgency — fixed
+      by giving every row a real "deadline" on one shared clock (a stale
+      project's deadline is when it crossed the 7-day threshold, a client
+      message's is when its 24h freshness window closes), so the merged
+      sort is driven by one consistent model instead of accidental scale
+      collisions.
 
 ## 5. Telegram Business bot — lead monitoring
 
