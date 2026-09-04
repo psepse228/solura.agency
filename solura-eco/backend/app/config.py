@@ -13,6 +13,8 @@ class Settings:
     supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
     canvas_base_url: str = os.getenv("CANVAS_BASE_URL", "https://webster.instructure.com")
+    canvas_token_encryption_key: str = os.getenv("CANVAS_TOKEN_ENCRYPTION_KEY", "")
+    canvas_sync_secret: str = os.getenv("CANVAS_SYNC_SECRET", "")
 
     telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
     telegram_bot_username: str = os.getenv("TELEGRAM_BOT_USERNAME", "")
