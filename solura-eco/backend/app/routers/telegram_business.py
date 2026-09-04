@@ -19,12 +19,21 @@ router = APIRouter()
 
 def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, contact_phone: str | None):
     """Returns the telegram_conversations row, creating it (and possibly a
-    new solura_eco.clients row) if this is a brand-new chat."""
+    new solura_eco.clients row) if this is a brand-new chat.
+
+    Uses `chat.get("id")`, not `chat["id"]` -- a malformed webhook payload
+    (missing "chat" entirely, defaulting to {}) must never raise KeyError
+    here; the caller already returns a 200/skip when chat_id ends up None.
+    """
+    chat_id = chat.get("id")
+    if chat_id is None:
+        return None
+
     existing = (
         db.table("telegram_conversations")
         .select("*")
         .eq("connection_id", connection_id)
-        .eq("telegram_chat_id", chat["id"])
+        .eq("telegram_chat_id", chat_id)
         .execute()
         .data
     )
@@ -38,28 +47,53 @@ def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, c
         if matches:
             client_id = matches[0]["id"]
 
+    created_client_id = None
     if not client_id:
         display_name = " ".join(
             part for part in [chat.get("first_name"), chat.get("last_name")] if part
-        ) or chat.get("username") or f"Telegram user {chat['id']}"
+        ) or chat.get("username") or f"Telegram user {chat_id}"
         new_client = db.table("clients").insert({"name": display_name, "status": "active"}).execute().data[0]
         client_id = new_client["id"]
+        created_client_id = client_id
 
-    conversation = (
-        db.table("telegram_conversations")
-        .insert(
-            {
-                "connection_id": connection_id,
-                "client_id": client_id,
-                "telegram_chat_id": chat["id"],
-                "telegram_first_name": chat.get("first_name"),
-                "telegram_username": chat.get("username"),
-            }
+    try:
+        conversation = (
+            db.table("telegram_conversations")
+            .insert(
+                {
+                    "connection_id": connection_id,
+                    "client_id": client_id,
+                    "telegram_chat_id": chat_id,
+                    "telegram_first_name": chat.get("first_name"),
+                    "telegram_username": chat.get("username"),
+                }
+            )
+            .execute()
+            .data[0]
         )
-        .execute()
-        .data[0]
-    )
-    return conversation
+        return conversation
+    except Exception:
+        # A racing webhook delivery for the same brand-new chat (Telegram
+        # redelivers on timeout/5xx) can beat us here -- the unique
+        # constraint on (connection_id, telegram_chat_id) rejects our
+        # insert. The winning request's conversation already exists; use
+        # it instead of erroring, and clean up the client row we
+        # speculatively created (safe: it's brand new, created in this
+        # same call, and no conversation references it -- nothing else
+        # could have linked to it yet).
+        existing_after_race = (
+            db.table("telegram_conversations")
+            .select("*")
+            .eq("connection_id", connection_id)
+            .eq("telegram_chat_id", chat_id)
+            .execute()
+            .data
+        )
+        if created_client_id:
+            db.table("clients").delete().eq("id", created_client_id).execute()
+        if existing_after_race:
+            return existing_after_race[0]
+        raise
 
 
 @router.post("/telegram-business")
@@ -73,7 +107,14 @@ async def telegram_business_webhook(request: Request):
 
     connection_update = body.get("business_connection")
     if connection_update:
-        business_connection_id = connection_update["id"]
+        business_connection_id = connection_update.get("id")
+        telegram_user_id = connection_update.get("user", {}).get("id")
+        if not business_connection_id or telegram_user_id is None:
+            # Malformed connection update -- skip, don't 500. Telegram
+            # retries non-2xx responses; a payload shape we can't use is
+            # expected traffic here, not a failure.
+            return {"ok": True, "skipped": "malformed business_connection payload"}
+
         is_enabled = connection_update.get("is_enabled", True)
         existing = (
             db.table("telegram_connections")
@@ -90,7 +131,7 @@ async def telegram_business_webhook(request: Request):
             db.table("telegram_connections").insert(
                 {
                     "business_connection_id": business_connection_id,
-                    "telegram_user_id": connection_update["user"]["id"],
+                    "telegram_user_id": telegram_user_id,
                     "is_enabled": is_enabled,
                 }
             ).execute()
@@ -123,6 +164,8 @@ async def telegram_business_webhook(request: Request):
     contact_phone = contact.get("phone_number") if contact else None
 
     conversation = _get_or_create_client_for_conversation(db, connection_id, chat, contact_phone)
+    if conversation is None:
+        return {"ok": True, "skipped": "message has no usable chat id"}
 
     text = message.get("text") or message.get("caption") or ""
     if not text:
