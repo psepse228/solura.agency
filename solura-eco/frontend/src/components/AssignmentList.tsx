@@ -21,11 +21,16 @@ function statusPill(status: string, overdue: boolean) {
 function formatDue(iso: string | null): string {
   if (!iso) return "No due date";
   const date = new Date(iso);
+  // Canvas returns UTC; everyone using this is on Webster's Tashkent
+  // schedule (UTC+5, no DST) -- show due dates in that timezone explicitly
+  // rather than whatever timezone happens to render the page (see
+  // docs/canvas-api-notes.md's timezone note).
   return date.toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Tashkent",
   });
 }
 
@@ -43,7 +48,13 @@ export function AssignmentList({ assignments }: { assignments: Assignment[] }) {
   return (
     <div className="flex flex-col gap-2">
       {assignments.map((a) => {
-        const overdue = a.status === "no submission yet" && !!a.due_at && new Date(a.due_at).getTime() < now;
+        // "graded"/"submitted" cover every state where the member has
+        // actually turned something in; everything else (Canvas's real
+        // "unsubmitted" workflow_state, or our own "no submission yet"
+        // fallback when the sync never got a row) counts as not-yet-done,
+        // and is overdue once its due date has passed.
+        const notDone = a.status !== "graded" && a.status !== "submitted";
+        const overdue = notDone && !!a.due_at && new Date(a.due_at).getTime() < now;
         return (
           <div
             key={a.id}
