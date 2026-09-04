@@ -61,6 +61,7 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
     });
   }
 
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
   for (const p of data.stale_projects) {
     const days = p.days_since_activity;
     rows.push({
@@ -70,7 +71,15 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
       href: `/projects/${p.id}`,
       external: false,
       dot: days === null || days >= 14 ? "bg-red-400" : "bg-amber-400",
-      sortAt: -(days ?? 999999),
+      // Approximate the project's last-activity instant on the same
+      // epoch-ms scale as the other two sources' real timestamps -- a raw
+      // "-(days)" (a tiny integer) would always sort every stale project
+      // ahead of every real due-date/message timestamp regardless of
+      // actual urgency, since the magnitudes aren't comparable. Never-
+      // active (days === null) sorts as if activity happened at epoch 0 --
+      // maximally stale, but still after -Infinity so real overdue Canvas
+      // work stays first.
+      sortAt: days === null ? 0 : Date.now() - days * MS_PER_DAY,
     });
   }
 
