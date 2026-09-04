@@ -1,8 +1,7 @@
 """Canvas LMS API client. See docs/canvas-api-notes.md for endpoint notes,
-pagination, and rate-limit behavior.
-
-Not wired to real tokens yet — this is the shape to fill in once a member's
-Canvas token is stored (encrypted) in the members table.
+pagination, and rate-limit behavior. Used by app/routers/canvas.py for both
+token verification (get_self) and the sync job (courses, assignments,
+submissions).
 """
 import httpx
 
@@ -40,3 +39,14 @@ class CanvasClient:
         return await self._get_paginated(
             f"/api/v1/courses/{course_id}/assignments", params={"order_by": "due_at"}
         )
+
+    async def get_submission(self, course_id: int, assignment_id: int) -> dict:
+        """The calling token owner's own submission for one assignment --
+        `/submissions/self` is Canvas's shortcut for "whoever this token
+        belongs to", no separate user-id lookup needed."""
+        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+            resp = await client.get(
+                f"{self.base_url}/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions/self"
+            )
+            resp.raise_for_status()
+            return resp.json()
