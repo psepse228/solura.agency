@@ -209,6 +209,10 @@ async def create_client_note(
     }
     result = db.table("client_notes").insert(row).execute().data[0]
 
+    # Attach the author's name the same shape as the GET response, rather
+    # than making the frontend do a second round-trip to find out who
+    # "session['member_id']" resolves to (same reasoning as
+    # create_project_note in projects.py).
     member = db.table("members").select("full_name").eq("id", session["member_id"]).execute().data
     result["author"] = member[0]["full_name"] if member else session["username"]
     return result
