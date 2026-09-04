@@ -22,6 +22,7 @@ ALLOWED_CONTENT_TYPES = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # .xlsx
     "image/png",
     "image/jpeg",
+    "text/html",  # some КП/presentations are exported as standalone HTML
 }
 MAX_SIZE_BYTES = 25 * 1024 * 1024
 ALLOWED_DOC_TYPES = ("kp", "presentation", "other")
@@ -40,7 +41,7 @@ async def upload_document(
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=400,
-            detail="Unsupported file type. Allowed: PDF, PPTX, DOCX, XLSX, PNG, JPEG",
+            detail="Unsupported file type. Allowed: PDF, PPTX, DOCX, XLSX, PNG, JPEG, HTML",
         )
 
     body = await file.read()
