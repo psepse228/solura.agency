@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { NotesPanel } from "@/components/NotesPanel";
 import { ProgressBar } from "@/components/ProgressBar";
 
 type Project = {
@@ -13,6 +14,7 @@ type Project = {
   accent_start: string | null;
   accent_end: string | null;
 };
+type Note = { id: string; body: string; author: string; created_at: string };
 type ClientDetail = {
   id: string;
   name: string;
@@ -34,10 +36,21 @@ async function getClient(id: string, token: string | undefined): Promise<ClientD
   return (await res.json()) as ClientDetail;
 }
 
+async function getClientNotes(id: string, token: string | undefined): Promise<Note[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) return [];
+  const res = await fetch(`${apiUrl}/clients/${id}/notes`, {
+    cache: "no-store",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) return [];
+  return (await res.json()) as Note[];
+}
+
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const token = (await cookies()).get("session")?.value;
-  const client = await getClient(id, token);
+  const [client, notes] = await Promise.all([getClient(id, token), getClientNotes(id, token)]);
 
   if (!client) notFound();
 
@@ -96,6 +109,10 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           })}
         </div>
       )}
+
+      <div className="mt-6">
+        <NotesPanel apiPath={`/api/clients/${client.id}/notes`} initialNotes={notes ?? []} />
+      </div>
     </div>
   );
 }

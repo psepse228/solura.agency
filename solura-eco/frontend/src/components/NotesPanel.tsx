@@ -13,7 +13,7 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export function NotesPanel({ projectId, initialNotes }: { projectId: string; initialNotes: Note[] }) {
+export function NotesPanel({ apiPath, initialNotes }: { apiPath: string; initialNotes: Note[] }) {
   const [notes, setNotes] = useState(initialNotes);
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export function NotesPanel({ projectId, initialNotes }: { projectId: string; ini
     if (!draft.trim() || submitting) return;
 
     setSubmitting(true);
-    const res = await fetch(`/api/projects/${projectId}/notes`, {
+    const res = await fetch(apiPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: draft.trim() }),

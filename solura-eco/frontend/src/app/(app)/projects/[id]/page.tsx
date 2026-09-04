@@ -213,7 +213,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          <NotesPanel projectId={project.id} initialNotes={notes ?? []} />
+          <NotesPanel apiPath={`/api/projects/${project.id}/notes`} initialNotes={notes ?? []} />
 
           <DocumentsPanel projectId={project.id} initialDocuments={documents ?? []} />
         </div>
