@@ -103,10 +103,56 @@ sessions still open.**
 
 ## 4. Canvas sync — uni load
 
-**Status: partially scaffolded from the original branch** — `canvas_client.py`
-service stub and `courses`/`assignments`/`submissions` tables exist
-(`0001_init.sql`), `/canvas` router is a placeholder. Not wired to real
-Canvas tokens or tested against Webster's instance yet.
+**Status: code SHIPPED, live in production — blocked on a real token paste
+to fully verify, same shape as item #5's remaining blocker.**
+
+- [x] Self-service token entry: `POST /canvas/token` (session-protected),
+      verifies the token against Canvas's real `GET /users/self` before
+      storing anything — `400` with Canvas's own error on a bad token,
+      never silently saves one that doesn't work.
+- [x] Token encryption: Python-side Fernet (`app/services/canvas_token_crypto.py`,
+      TDD'd), keyed by a new `CANVAS_TOKEN_ENCRYPTION_KEY` secret, stored in
+      the existing `members.canvas_api_token_enc` (`bytea`) column — no
+      migration needed. One real bug caught in review and fixed:
+      `bytea` columns have no JSON representation, so both the write path
+      (`save_canvas_token`) and the sync read path had to encode/decode
+      through Postgres's own `\x<hex>` text format, not raw Python bytes.
+- [x] Sync: new `canvas-sync-cron` Railway service (same "Solura eco"
+      project), schedule `*/30 * * * *`, calls `POST /canvas/sync` with a
+      shared secret (`CANVAS_SYNC_SECRET`, `hmac.compare_digest`, header-based
+      — not session auth, nothing in a cron request identifies "this is the
+      cron job" any other way). Loops every member with a stored token,
+      pulls courses → assignments → that member's submission status via
+      `CanvasClient` (now has `get_submission`), upserts into
+      `courses`/`assignments`/`submissions`. Per-member try/except
+      isolation — one member's expired token or a Canvas outage never
+      blocks the others in the same run; verified live (`{"ok":true,"synced":0,"failed":[]}`
+      against zero tokens saved so far).
+- [x] `GET /canvas/my-assignments` — strictly the calling session's own
+      data (`member_id` always from the session, never a request param),
+      reads already-synced rows, `has_token` flag added (not in the
+      original spec text) so the frontend can tell "no token saved yet"
+      apart from "token saved, zero courses synced" — both return an empty
+      list otherwise.
+- [x] Frontend: `/uni-load` (sidebar link now live) — token-entry form when
+      `has_token` is false, an assignment list with status pills otherwise.
+      One real bug caught in review and fixed: overdue detection originally
+      only matched the backend's internal "no submission yet" fallback
+      string, which Canvas's real `unsubmitted` workflow_state never
+      produces — so it would almost never have actually flagged anything
+      overdue. Also fixed: due dates now render in Tashkent time explicitly
+      (`timeZone: "Asia/Tashkent"`) instead of whatever timezone the
+      Server Component happens to execute in.
+- [x] `CANVAS_TOKEN_ENCRYPTION_KEY` and `CANVAS_SYNC_SECRET` generated and
+      set on Railway; `canvas-sync-cron` created and deployed successfully.
+- [ ] **Not yet verified: a real Canvas token.** None of the three of you
+      has pasted a real personal access token into `/uni-load` yet, so the
+      sync has nothing to pull and this hasn't been checked against
+      Webster's actual Canvas instance end-to-end. Paste a token
+      (`Account → Settings → New Access Token` on Webster's Canvas) at
+      `/uni-load` whenever convenient, then check back after the next
+      30-minute sync (or ask me to trigger one manually) to confirm real
+      assignments/due dates/status show up correctly.
 
 ## 5. Telegram Business bot — lead monitoring
 
