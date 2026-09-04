@@ -30,6 +30,7 @@ export function CanvasTokenForm() {
       return;
     }
 
+    setToken("");
     router.refresh();
   }
 
@@ -51,6 +52,7 @@ export function CanvasTokenForm() {
       <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2">
         <input
           type="password"
+          autoComplete="off"
           value={token}
           onChange={(e) => setToken(e.target.value)}
           placeholder="Canvas access token"
