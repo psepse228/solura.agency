@@ -31,7 +31,7 @@ type Row = {
   href: string;
   external: boolean;
   dot: string; // tailwind bg-* class
-  sortAt: number; // epoch ms, most-urgent-first
+  sortAt: number; // a "deadline" in epoch ms -- ascending sort = most urgent first
 };
 
 function formatRelativeDue(iso: string, overdue: boolean): string {
@@ -46,8 +46,29 @@ function formatRelativePast(iso: string): string {
   return hours < 1 ? "just now" : hours < 48 ? `${hours}h ago` : `${Math.round(hours / 24)}d ago`;
 }
 
+// Thresholds mirror the backend's app/routers/me.py constants -- kept in
+// sync manually since the frontend never receives them directly, only
+// their already-applied effects (which rows are included at all).
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const STALE_PROJECT_DAYS = 7;
+const FRESH_MESSAGE_HOURS = 24;
+
 export function UrgentPanel({ data }: { data: UrgentData }) {
   const rows: Row[] = [];
+  const now = Date.now();
+
+  // Every row's sortAt is a real "deadline" instant, on one shared clock,
+  // so the merged list can sort by genuine urgency instead of by which
+  // source it came from. Canvas assignments have a real deadline
+  // (due_at) already; the other two sources don't have one naturally, so
+  // each gets an *implicit* deadline consistent with why it was flagged
+  // urgent in the first place: a stale project's deadline is "when it
+  // crossed the staleness threshold" (last activity + STALE_PROJECT_DAYS),
+  // a client message's is "when its fresh-message window closes"
+  // (message time + FRESH_MESSAGE_HOURS). A smaller (more overdue)
+  // sortAt always sorts first, on the same footing as a Canvas deadline
+  // that's already passed.
 
   for (const a of data.canvas_deadlines) {
     rows.push({
@@ -57,13 +78,17 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
       href: a.html_url ?? "/uni-load",
       external: !!a.html_url,
       dot: a.overdue ? "bg-red-400" : "bg-amber-400",
-      sortAt: a.overdue ? -Infinity : new Date(a.due_at).getTime(),
+      sortAt: new Date(a.due_at).getTime(),
     });
   }
 
-  const MS_PER_DAY = 24 * 60 * 60 * 1000;
   for (const p of data.stale_projects) {
     const days = p.days_since_activity;
+    // Never-active (no dev_events row ever) has no real last-activity
+    // instant to anchor a deadline to -- treat it as maximally overdue
+    // (further in the past than any real staleness deadline could be)
+    // rather than guessing a specific date.
+    const deadline = days === null ? now - 999_999 * DAY_MS : now - (days - STALE_PROJECT_DAYS) * DAY_MS;
     rows.push({
       key: `project-${p.id}`,
       label: p.name,
@@ -71,15 +96,7 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
       href: `/projects/${p.id}`,
       external: false,
       dot: days === null || days >= 14 ? "bg-red-400" : "bg-amber-400",
-      // Approximate the project's last-activity instant on the same
-      // epoch-ms scale as the other two sources' real timestamps -- a raw
-      // "-(days)" (a tiny integer) would always sort every stale project
-      // ahead of every real due-date/message timestamp regardless of
-      // actual urgency, since the magnitudes aren't comparable. Never-
-      // active (days === null) sorts as if activity happened at epoch 0 --
-      // maximally stale, but still after -Infinity so real overdue Canvas
-      // work stays first.
-      sortAt: days === null ? 0 : Date.now() - days * MS_PER_DAY,
+      sortAt: deadline,
     });
   }
 
@@ -91,7 +108,7 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
       href: `/clients/${m.client_id}`,
       external: false,
       dot: "bg-amber-400",
-      sortAt: new Date(m.last_message_at).getTime(),
+      sortAt: new Date(m.last_message_at).getTime() + FRESH_MESSAGE_HOURS * HOUR_MS,
     });
   }
 
