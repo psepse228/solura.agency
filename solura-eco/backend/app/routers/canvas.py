@@ -106,6 +106,22 @@ async def my_assignments(session: dict = Depends(require_session)):
     return {"has_token": has_token, "assignments": out}
 
 
+@router.get("/my-courses")
+async def my_courses(session: dict = Depends(require_session)):
+    """Strictly the calling member's own synced courses -- same
+    own-data-only rule as my_assignments."""
+    db = get_client()
+    courses = (
+        db.table("courses")
+        .select("id,name,course_code,current_score,color")
+        .eq("member_id", session["member_id"])
+        .order("name")
+        .execute()
+        .data
+    )
+    return courses
+
+
 def _verify_sync_secret(request: Request) -> None:
     provided = request.headers.get("x-canvas-sync-secret", "")
     if not settings.canvas_sync_secret or not hmac.compare_digest(provided, settings.canvas_sync_secret):
@@ -125,9 +141,32 @@ async def _sync_member(db, member: dict) -> None:
     client = CanvasClient(base_url, token)
     now_iso = datetime.now(timezone.utc).isoformat()
 
+    try:
+        colors = await client.get_course_colors()
+    except Exception:
+        # One member's colors call failing (rare -- it's the same token
+        # that just succeeded or is about to succeed on courses/
+        # assignments) shouldn't block their course/assignment sync --
+        # every course just gets color: null for this run.
+        logger.warning("Canvas: could not fetch course colors for member %s", member["id"])
+        colors = {}
+
     canvas_courses = await client.list_active_courses()
     for cc in canvas_courses:
         term = cc.get("term")
+
+        current_score = None
+        for enrollment in cc.get("enrollments") or []:
+            # Canvas's own docs/instances aren't fully consistent on
+            # whether this embedded (course-list) enrollment's "type" is
+            # the short form ("student") or the full enrollment class name
+            # ("StudentEnrollment") -- substring-match, case-insensitively,
+            # rather than risk an exact-match that silently leaves every
+            # grade null on the instance that uses the other form.
+            if "student" in str(enrollment.get("type", "")).lower():
+                current_score = enrollment.get("computed_current_score")
+                break
+
         course_row = (
             db.table("courses")
             .upsert(
@@ -139,6 +178,8 @@ async def _sync_member(db, member: dict) -> None:
                     "term": term.get("name") if term else None,
                     "start_at": cc.get("start_at"),
                     "end_at": cc.get("end_at"),
+                    "current_score": current_score,
+                    "color": colors.get(f"course_{cc['id']}"),
                     "synced_at": now_iso,
                 },
                 on_conflict="member_id,canvas_course_id",
