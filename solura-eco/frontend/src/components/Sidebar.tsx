@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/SignOutButton";
+import { UrgentPanel, type UrgentData } from "@/components/UrgentPanel";
 
 // "Projects" and "Uni load" are the only live routes this pass -- the rest
 // are the real, named upcoming build-order sections (architecture.md),
@@ -16,7 +17,7 @@ const NAV_ITEMS = [
   { href: "/leads", label: "Leads", live: false },
 ];
 
-export function Sidebar({ username }: { username: string }) {
+export function Sidebar({ username, urgent }: { username: string; urgent: UrgentData | null }) {
   const pathname = usePathname();
 
   return (
@@ -45,6 +46,8 @@ export function Sidebar({ username }: { username: string }) {
           );
         })}
       </nav>
+
+      {urgent && <UrgentPanel data={urgent} />}
 
       <div className="mt-auto flex items-center gap-2.5 border-t border-white/5 pt-2.5">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-bg3 text-[11px] font-bold uppercase">

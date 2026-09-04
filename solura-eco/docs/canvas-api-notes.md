@@ -26,6 +26,13 @@ Requests: `Authorization: Bearer <token>` against
   per course, with `due_at`, `points_possible`, `html_url`, `submission_types`.
 - `GET /api/v1/courses/:course_id/assignments/:id/submissions/self` —
   submission status + score for one assignment.
+- `GET /api/v1/courses?enrollment_state=active&include[]=total_scores` --
+  same course list, with each course's `enrollments` array carrying
+  `computed_current_score` (float, nullable) for the token owner's
+  student enrollment.
+- `GET /api/v1/users/self/colors` -- the member's own custom course
+  colors, `{"custom_colors": {"course_<id>": "#hex", ...}}`. One call per
+  sync, not per course.
 - `GET /api/v1/users/self/todo` — Canvas's own "what's due" list, useful as a
   sanity check against what we compute ourselves.
 

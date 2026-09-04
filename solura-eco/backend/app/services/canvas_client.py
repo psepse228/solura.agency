@@ -31,8 +31,13 @@ class CanvasClient:
             return resp.json()
 
     async def list_active_courses(self) -> list[dict]:
+        # include[]=total_scores adds a per-course "enrollments" array with
+        # computed_current_score for the token owner's own student
+        # enrollment -- that's the grade percentage the /uni-load Courses
+        # grid shows.
         return await self._get_paginated(
-            "/api/v1/courses", params={"enrollment_state": "active"}
+            "/api/v1/courses",
+            params={"enrollment_state": "active", "include[]": "total_scores"},
         )
 
     async def list_assignments(self, course_id: int) -> list[dict]:
@@ -50,3 +55,14 @@ class CanvasClient:
             )
             resp.raise_for_status()
             return resp.json()
+
+    async def get_course_colors(self) -> dict[str, str]:
+        """The token owner's own custom course colors, as Canvas's own
+        `{"course_<id>": "#hex", ...}` shape -- these are the colors the
+        member picked in their own Canvas dashboard, used as-is rather
+        than inventing our own so the /uni-load grid matches what Canvas
+        itself shows them."""
+        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+            resp = await client.get(f"{self.base_url}/api/v1/users/self/colors")
+            resp.raise_for_status()
+            return resp.json().get("custom_colors", {})
