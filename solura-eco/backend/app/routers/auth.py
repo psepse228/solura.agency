@@ -23,7 +23,12 @@ async def login(payload: LoginRequest, response: Response):
     result = (
         db.table("members")
         .select("id,username,password_hash")
-        .eq("username", payload.username)
+        # Case-insensitive on purpose -- usernames are stored lowercase,
+        # but people naturally type "Rizo"/"RIZO" and an exact match was
+        # producing a confusing "invalid credentials" for a right password
+        # typed with the wrong case. .eq() (not .ilike()) so stray
+        # %/_ characters in the input are never treated as SQL wildcards.
+        .eq("username", payload.username.strip().lower())
         .execute()
     )
 
