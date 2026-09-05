@@ -11,7 +11,7 @@ import { UrgentPanel, type UrgentData } from "@/components/UrgentPanel";
 const NAV_ITEMS = [
   { href: "/", label: "Projects", live: true },
   { href: "/tasks", label: "Tasks", live: true },
-  { href: "/clients", label: "Clients", live: true },
+  { href: "/clients", label: "Clients work", live: true },
   { href: "/uni-load", label: "Uni load", live: true },
   { href: "/docs", label: "Docs & КП", live: true },
   { href: "/leads", label: "Leads", live: false },

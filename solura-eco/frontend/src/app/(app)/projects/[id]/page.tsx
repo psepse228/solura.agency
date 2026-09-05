@@ -3,12 +3,14 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { ClientsPanel } from "@/components/ClientsPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { NotesPanel } from "@/components/NotesPanel";
 import { ProgressBar } from "@/components/ProgressBar";
 import { RolesEditor } from "@/components/RolesEditor";
 
 type Member = { id: string; full_name: string };
+type Client = { id: string; name: string; status: string };
 type DevEvent = { id: string; actor: string | null; message: string; url: string | null; occurred_at: string };
 type Note = { id: string; body: string; author: string; created_at: string };
 type Document = {
@@ -22,8 +24,6 @@ type Document = {
 type ProjectDetail = {
   id: string;
   name: string;
-  client_id: string;
-  client_name: string | null;
   status: string;
   progress: number;
   github_repo: string | null;
@@ -32,6 +32,7 @@ type ProjectDetail = {
   notes: string | null;
   dev_members: Member[];
   client_work_members: Member[];
+  clients: Client[];
   recent_events: DevEvent[];
 };
 
@@ -110,9 +111,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{project.name}</h1>
           <div className="mt-1 flex items-center gap-2 text-sm text-silver">
-            <Link href={`/clients/${project.client_id}`} className="hover:text-white hover:underline">
-              {project.client_name ?? "—"}
-            </Link>
+            <span>
+              {project.clients.length === 0
+                ? "No clients yet"
+                : `${project.clients.length} ${project.clients.length === 1 ? "client" : "clients"}`}
+            </span>
             {project.github_repo && (
               <>
                 <span>·</span>
@@ -205,6 +208,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             initialDevMembers={project.dev_members}
             initialClientWorkMembers={project.client_work_members}
           />
+
+          <ClientsPanel projectId={project.id} initialClients={project.clients} />
 
           {project.notes && (
             <div className="rounded-2xl border border-border bg-bg2 p-5">

@@ -11,7 +11,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const token = (await cookies()).get("session")?.value;
   const body = await request.json();
 
-  const res = await fetch(`${apiUrl}/clients/projects/${id}/roles`, {
+  const res = await fetch(`${apiUrl}/projects/${id}/roles`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

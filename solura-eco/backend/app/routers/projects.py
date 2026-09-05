@@ -1,13 +1,14 @@
-"""GET /projects (list), GET /projects/{id} (detail), GET /projects/stats,
-GET/POST /projects/{id}/notes (the shared notepad). Project/role writes
-still go through clients.py (POST /clients/{id}/projects, PATCH
-/clients/projects/{id}, PUT .../roles) -- notes live here since they're
-read alongside the rest of a project's detail, not part of that CRUD set.
+"""Projects API -- list/detail/stats/notes, plus project CRUD and role
+assignment (moved here from clients.py now that a project no longer
+belongs to a single client -- see 0014_clients_belong_to_projects.sql;
+projects own their own writes instead of being nested under a client's
+routes that no longer make sense).
 """
 from datetime import datetime, timedelta, timezone
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.auth.deps import require_session
 from app.services.supabase_client import get_client
@@ -56,9 +57,48 @@ def _attach_last_activity(db, projects: list) -> None:
         p["last_activity_at"] = latest.get(p["id"])
 
 
-def _flatten_client(p: dict) -> None:
-    client = p.pop("clients", None)
-    p["client_name"] = client["name"] if client else None
+def _attach_clients(db, projects: list) -> None:
+    """Each project's subscriber companies -- a project can have many,
+    a client belongs to exactly one (the reverse of how this used to
+    work, see 0014_clients_belong_to_projects.sql)."""
+    project_ids = [p["id"] for p in projects]
+    if not project_ids:
+        return
+    clients = (
+        db.table("clients")
+        .select("id,name,status,project_id")
+        .in_("project_id", project_ids)
+        .order("name")
+        .execute()
+        .data
+    )
+    by_project: dict = {}
+    for c in clients:
+        by_project.setdefault(c["project_id"], []).append(
+            {"id": c["id"], "name": c["name"], "status": c["status"]}
+        )
+    for p in projects:
+        p["clients"] = by_project.get(p["id"], [])
+
+
+class ProjectIn(BaseModel):
+    name: str
+    status: str = "active"
+    progress: int = Field(default=0, ge=0, le=100)
+    github_repo: Optional[str] = None
+    vercel_project: Optional[str] = None
+    owner_member_id: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+    progress: Optional[int] = Field(default=None, ge=0, le=100)
+    github_repo: Optional[str] = None
+    vercel_project: Optional[str] = None
+    owner_member_id: Optional[str] = None
+    notes: Optional[str] = None
 
 
 @router.get("")
@@ -66,17 +106,22 @@ async def list_projects(_: dict = Depends(require_session)):
     db = get_client()
     projects = (
         db.table("projects")
-        .select("id,name,client_id,status,progress,github_repo,accent_start,accent_end,clients(name)")
+        .select("id,name,status,progress,github_repo,accent_start,accent_end")
         .order("name")
         .execute()
         .data
     )
-    for p in projects:
-        _flatten_client(p)
-
+    _attach_clients(db, projects)
     _attach_roles(db, projects)
     _attach_last_activity(db, projects)
     return projects
+
+
+@router.post("")
+async def create_project(payload: ProjectIn, _: dict = Depends(require_session)):
+    db = get_client()
+    result = db.table("projects").insert(payload.model_dump(exclude_none=True)).execute()
+    return result.data[0]
 
 
 def _compute_stats(projects: list, clients: list, events_count: int) -> dict:
@@ -112,9 +157,7 @@ async def get_project(project_id: str, _: dict = Depends(require_session)):
     db = get_client()
     result = (
         db.table("projects")
-        .select(
-            "id,name,client_id,status,progress,github_repo,accent_start,accent_end,notes,clients(name)"
-        )
+        .select("id,name,status,progress,github_repo,accent_start,accent_end,notes")
         .eq("id", project_id)
         .execute()
         .data
@@ -123,8 +166,7 @@ async def get_project(project_id: str, _: dict = Depends(require_session)):
         raise HTTPException(status_code=404, detail="Project not found")
 
     project = result[0]
-    _flatten_client(project)
-
+    _attach_clients(db, [project])
     _attach_roles(db, [project])
     _attach_last_activity(db, [project])
 
@@ -140,6 +182,58 @@ async def get_project(project_id: str, _: dict = Depends(require_session)):
     project["recent_events"] = events
 
     return project
+
+
+@router.patch("/{project_id}")
+async def update_project(project_id: str, payload: ProjectUpdate, _: dict = Depends(require_session)):
+    db = get_client()
+    updates = payload.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(400, "No fields to update")
+    result = db.table("projects").update(updates).eq("id", project_id).execute()
+    if not result.data:
+        raise HTTPException(404, "Project not found")
+    return result.data[0]
+
+
+class RolesUpdate(BaseModel):
+    dev_member_ids: List[str] = Field(default_factory=list)
+    client_work_member_ids: List[str] = Field(default_factory=list)
+
+
+@router.put("/{project_id}/roles")
+async def update_project_roles(
+    project_id: str, payload: RolesUpdate, _: dict = Depends(require_session)
+):
+    db = get_client()
+
+    all_ids = set(payload.dev_member_ids) | set(payload.client_work_member_ids)
+    if all_ids:
+        existing = db.table("members").select("id").in_("id", list(all_ids)).execute().data
+        existing_ids = {row["id"] for row in existing}
+        missing = all_ids - existing_ids
+        if missing:
+            raise HTTPException(status_code=400, detail=f"Unknown member_id(s): {sorted(missing)}")
+
+    # Not wrapped in a single DB transaction -- supabase-py/PostgREST calls
+    # are separate HTTP requests, no multi-statement transaction available
+    # without a stored procedure. A failure between delete and insert could
+    # leave roles cleared but not re-set. Accepted risk for a 3-person
+    # internal tool -- trivially re-set by hand if it ever happens -- not
+    # worth a stored-proc for this.
+    db.table("project_roles").delete().eq("project_id", project_id).execute()
+
+    rows = [
+        {"project_id": project_id, "member_id": mid, "role_type": "dev"}
+        for mid in payload.dev_member_ids
+    ] + [
+        {"project_id": project_id, "member_id": mid, "role_type": "client_work"}
+        for mid in payload.client_work_member_ids
+    ]
+    if rows:
+        db.table("project_roles").insert(rows).execute()
+
+    return {"ok": True}
 
 
 class NoteIn(BaseModel):

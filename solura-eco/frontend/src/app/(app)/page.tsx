@@ -5,17 +5,17 @@ import { cookies } from "next/headers";
 import { ProgressBar } from "@/components/ProgressBar";
 
 type Member = { id: string; full_name: string };
+type Client = { id: string; name: string; status: string };
 type Project = {
   id: string;
   name: string;
-  client_id: string;
-  client_name: string | null;
   status: string;
   progress: number;
   accent_start: string | null;
   accent_end: string | null;
   dev_members: Member[];
   client_work_members: Member[];
+  clients: Client[];
   last_activity_at: string | null;
 };
 type Stats = {
@@ -119,12 +119,11 @@ export default async function Home() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="font-display text-base font-bold">{p.name}</div>
-                        <Link
-                          href={`/clients/${p.client_id}`}
-                          className="relative z-10 mt-0.5 inline-block text-xs text-silver-dim hover:text-white hover:underline"
-                        >
-                          {p.client_name ?? "—"}
-                        </Link>
+                        <div className="mt-0.5 text-xs text-silver-dim">
+                          {p.clients.length === 0
+                            ? "No clients yet"
+                            : `${p.clients.length} ${p.clients.length === 1 ? "client" : "clients"}`}
+                        </div>
                       </div>
                       <span
                         className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
