@@ -58,9 +58,11 @@ function LeadEditDialog({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const needsProjectToConvert = status === "converted" && !convertedProjectId;
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!name.trim() || saving) return;
+    if (!name.trim() || saving || needsProjectToConvert) return;
 
     setSaving(true);
     setError(null);
@@ -141,7 +143,9 @@ function LeadEditDialog({
 
         {status === "converted" && (
           <label>
-            <span className="field-label">Converted into project</span>
+            <span className="field-label">
+              Converted into project — creates the real client on save
+            </span>
             <select className="field" value={convertedProjectId} onChange={(e) => setConvertedProjectId(e.target.value)}>
               <option value="">— pick a project —</option>
               {projects.map((p) => (
@@ -164,8 +168,8 @@ function LeadEditDialog({
           <button type="button" onClick={onClose} className="btn-secondary">
             Cancel
           </button>
-          <button type="submit" disabled={!name.trim() || saving} className="btn-primary">
-            {saving ? "Saving…" : "Save"}
+          <button type="submit" disabled={!name.trim() || saving || needsProjectToConvert} className="btn-primary">
+            {saving ? "Saving…" : needsProjectToConvert ? "Pick a project first" : "Save"}
           </button>
         </div>
       </form>
@@ -261,6 +265,16 @@ export function LeadsBoard({ initialLeads }: { initialLeads: Lead[] }) {
   }
 
   async function updateStatus(leadId: string, status: Lead["status"]) {
+    // Dragging straight to "Converted" has no project to convert into --
+    // the backend rejects that (a client needs a project_id), so send
+    // people to the real dialog instead of silently failing.
+    if (status === "converted") {
+      const target = leads.find((l) => l.id === leadId);
+      setEditing(target ? { ...target, status: "converted" } : null);
+      return;
+    }
+
+    const previous = leads;
     setLeads(leads.map((l) => (l.id === leadId ? { ...l, status } : l)));
     const res = await fetch(`/api/leads/${leadId}`, {
       method: "PATCH",
@@ -268,7 +282,9 @@ export function LeadsBoard({ initialLeads }: { initialLeads: Lead[] }) {
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
-      setError("Couldn't update status — try again.");
+      setLeads(previous);
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? "Couldn't update status — try again.");
       return;
     }
     router.refresh();
