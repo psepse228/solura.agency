@@ -6,6 +6,7 @@ frontend changes needed.
 Only "succeeded"/"failed" outcomes are recorded (not intermediate states
 like building/queued) -- a glance-at feed, not a live build log.
 """
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request
@@ -15,6 +16,7 @@ from app.services.supabase_client import get_client
 from app.webhooks.railway import verify_railway_secret
 from app.webhooks.vercel import verify_vercel_signature
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -82,10 +84,12 @@ async def railway_webhook(secret: str, request: Request):
     if not isinstance(payload, dict):
         return {"ok": True, "skipped": "malformed payload"}
 
+    logger.info("Railway webhook payload: %s", payload)
+
     details = payload.get("details") or {}
     status = details.get("status")
     if status not in ("SUCCESS", "FAILED"):
-        return {"ok": True, "skipped": "not a tracked deployment status"}
+        return {"ok": True, "skipped": f"not a tracked deployment status ({status!r})"}
 
     resource = payload.get("resource") or {}
     service_id = (resource.get("service") or {}).get("id")
