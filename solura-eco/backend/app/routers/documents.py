@@ -99,6 +99,27 @@ async def list_documents(project_id: str, _: dict = Depends(require_session)):
     return docs
 
 
+@router.get("/documents")
+async def list_all_documents(_: dict = Depends(require_session)):
+    """Every document across every project -- backs the top-level 'Docs &
+    КП' library page. Per-project listing (list_documents above) stays
+    for the project detail page's own panel."""
+    db = get_client()
+    docs = (
+        db.table("documents")
+        .select("id,doc_type,filename,size_bytes,created_at,project_id,projects(name),members(full_name)")
+        .order("created_at", desc=True)
+        .execute()
+        .data
+    )
+    for d in docs:
+        member = d.pop("members", None)
+        d["uploaded_by_name"] = member["full_name"] if member else None
+        project = d.pop("projects", None)
+        d["project_name"] = project["name"] if project else None
+    return docs
+
+
 @router.get("/documents/{document_id}/download")
 async def download_document(document_id: str, _: dict = Depends(require_session)):
     db = get_client()
