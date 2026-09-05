@@ -5,17 +5,18 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/SignOutButton";
 import { UrgentPanel, type UrgentData } from "@/components/UrgentPanel";
 
-// "Leads" is the only inert route left -- it's waiting on the Telegram
-// Business connection (a manual step, not code). Everything else here is
-// real and live. See architecture.md for the original build order.
+// Every route here is real and live. Leads is manual-entry only for now
+// (source defaults to 'manual') -- once the Telegram Business connection
+// lands, inbound messages from unknown contacts can create leads too,
+// no schema change needed. See architecture.md for the original build order.
 const NAV_ITEMS = [
   { href: "/", label: "Home", live: true, exact: true },
   { href: "/projects", label: "Projects", live: true, exact: false },
   { href: "/tasks", label: "Tasks", live: true, exact: false },
   { href: "/clients", label: "Clients work", live: true, exact: false },
+  { href: "/leads", label: "Leads", live: true, exact: false },
   { href: "/uni-load", label: "Uni load", live: true, exact: false },
   { href: "/brain", label: "Brain / Database", live: true, exact: false },
-  { href: "/leads", label: "Leads", live: false, exact: false },
 ];
 
 function isActive(pathname: string, item: (typeof NAV_ITEMS)[number]): boolean {

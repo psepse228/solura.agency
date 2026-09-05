@@ -8,13 +8,13 @@ export async function GET() {
   }
 
   const token = (await cookies()).get("session")?.value;
-  const res = await fetch(`${apiUrl}/projects`, {
+  const res = await fetch(`${apiUrl}/leads`, {
     cache: "no-store",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
   if (!res.ok) {
-    return NextResponse.json({ error: "Failed to load projects" }, { status: res.status });
+    return NextResponse.json({ error: "Failed to load leads" }, { status: res.status });
   }
 
   return NextResponse.json(await res.json());
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const token = (await cookies()).get("session")?.value;
   const body = await request.json();
 
-  const res = await fetch(`${apiUrl}/projects`, {
+  const res = await fetch(`${apiUrl}/leads`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   if (!res.ok) {
     const detail = await res.json().catch(() => ({}));
-    return NextResponse.json({ error: detail.detail ?? "Failed to create project" }, { status: res.status });
+    return NextResponse.json({ error: detail.detail ?? "Failed to create lead" }, { status: res.status });
   }
 
   return NextResponse.json(await res.json());

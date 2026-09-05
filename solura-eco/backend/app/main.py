@@ -14,6 +14,7 @@ from app.routers import (
     clients,
     deploy_webhooks,
     documents,
+    leads,
     me,
     members,
     projects,
@@ -37,6 +38,7 @@ app.include_router(brain.router, prefix="/brain", tags=["brain"])
 app.include_router(me.router, prefix="/me", tags=["me"])
 app.include_router(canvas.router, prefix="/canvas", tags=["canvas"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
+app.include_router(leads.router, prefix="/leads", tags=["leads"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])
 app.include_router(members.router, prefix="/members", tags=["members"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
