@@ -222,15 +222,15 @@ the bot reads conversations and updates client records automatically.
       Client detail page now has a Notepad, fed by both manual notes and
       auto-posted Telegram summaries in one feed.
 - [x] `TELEGRAM_WEBHOOK_SECRET` set on Railway.
-- [ ] **Blocked on you, not code:** rotate the bot token via BotFather (the
-      previous one was shared in a chat transcript — never reuse it), set
-      the new `TELEGRAM_BOT_TOKEN` on Railway, connect Telegram Business on
-      the dedicated Solura account (Premium + Settings → Telegram Business
-      → Chatbots), then run
-      `python scripts/register_telegram_webhook.py <token> https://backend-production-7694a.up.railway.app/webhooks/telegram-business <TELEGRAM_WEBHOOK_SECRET>`.
-      A real `OPENAI_API_KEY` also isn't set yet — without one, messages
-      still save but no summary gets posted (degrades gracefully, not a
-      hard blocker).
+- [x] Bot token rotated and `TELEGRAM_BOT_TOKEN` set on Railway (2026-09-04);
+      real `OPENAI_API_KEY` also set — summaries will generate once
+      messages start flowing.
+- [ ] **Blocked on you, not code:** connect Telegram Business on the
+      dedicated Solura account (Premium + Settings → Telegram Business →
+      Chatbots) — deliberately deferred until "the platform is finished."
+      Once connected, run
+      `python scripts/register_telegram_webhook.py <token> https://backend-production-7694a.up.railway.app/webhooks/telegram-business <TELEGRAM_WEBHOOK_SECRET>`
+      and this item is fully live.
 - **Known limitation, carried over honestly from Argus's own code:**
       Telegram only exposes a phone number when a contact card is
       explicitly shared — rare in practice. Most new conversations will
