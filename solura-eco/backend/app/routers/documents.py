@@ -9,7 +9,7 @@ prefix of its own (see main.py).
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from app.auth.deps import require_session
-from app.services.document_paths import unique_storage_path
+from app.services.document_paths import safe_stem, unique_storage_path
 from app.services.storage_client import get_storage
 from app.services.supabase_client import get_client
 
@@ -49,10 +49,16 @@ async def upload_document(
         raise HTTPException(status_code=413, detail="Max file size is 25MB")
 
     db = get_client()
+    # Only paths that could actually collide with this filename's stem can
+    # ever matter to unique_storage_path -- narrowing with .like() here
+    # means the query no longer grows with the whole docs library, only
+    # with how many past uploads happened to share this exact name.
+    stem = safe_stem(file.filename)
     existing = (
         db.table("documents")
         .select("storage_path")
         .eq("project_id", project_id)
+        .like("storage_path", f"{project_id}/{stem}%")
         .execute()
         .data
     )
