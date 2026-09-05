@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href: "/tasks", label: "Tasks", live: true, exact: false },
   { href: "/clients", label: "Clients work", live: true, exact: false },
   { href: "/uni-load", label: "Uni load", live: true, exact: false },
-  { href: "/docs", label: "Docs & КП", live: true, exact: false },
+  { href: "/brain", label: "Brain / Database", live: true, exact: false },
   { href: "/leads", label: "Leads", live: false, exact: false },
 ];
 
