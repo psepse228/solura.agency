@@ -1,7 +1,10 @@
 // solura-eco/frontend/src/components/TaskBoard.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 type Member = { id: string; full_name: string };
 type Task = {
@@ -29,12 +32,18 @@ const PRIORITY_DOT: Record<Task["priority"], string> = {
   low: "bg-white/30",
 };
 
+// Two field-width tiers instead of five distinct arbitrary values -- one
+// for the free-text task title, one shared by every other field.
+const FIELD_WIDE = "min-w-[220px] flex-1";
+const FIELD_NARROW = "min-w-[130px]";
+
 function formatDue(iso: string | null): string | null {
   if (!iso) return null;
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
+  const router = useRouter();
   const [tasks, setTasks] = useState(initialTasks);
   const [members, setMembers] = useState<Member[]>([]);
   const [title, setTitle] = useState("");
@@ -44,6 +53,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
   const [dueAt, setDueAt] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Task | null>(null);
 
   useEffect(() => {
     fetch("/api/members")
@@ -85,6 +95,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     setMemberId("");
     setPriority("normal");
     setDueAt("");
+    router.refresh();
   }
 
   async function updateStatus(taskId: string, status: Task["status"]) {
@@ -96,14 +107,19 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
     });
     if (!res.ok) {
       setError("Couldn't update status — try again.");
+      return;
     }
+    router.refresh();
   }
 
-  async function deleteTask(taskId: string) {
-    if (!confirm("Delete this task?")) return;
-    const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    const res = await fetch(`/api/tasks/${target.id}`, { method: "DELETE" });
     if (res.ok) {
-      setTasks(tasks.filter((t) => t.id !== taskId));
+      setTasks(tasks.filter((t) => t.id !== target.id));
+      router.refresh();
     }
   }
 
@@ -113,7 +129,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
         onSubmit={handleCreate}
         className="flex flex-col gap-2 rounded-2xl border border-border bg-bg2 p-4 sm:flex-row sm:flex-wrap sm:items-end"
       >
-        <div className="flex min-w-[200px] flex-1 flex-col gap-1">
+        <div className={`flex ${FIELD_WIDE} flex-col gap-1`}>
           <label className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">Task</label>
           <input
             value={title}
@@ -122,7 +138,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             className="rounded-lg border border-border bg-transparent px-3 py-1.5 text-sm text-white placeholder:text-silver-dim"
           />
         </div>
-        <div className="flex min-w-[140px] flex-col gap-1">
+        <div className={`flex ${FIELD_NARROW} flex-col gap-1`}>
           <label className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">Client</label>
           <input
             value={clientName}
@@ -131,7 +147,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             className="rounded-lg border border-border bg-transparent px-3 py-1.5 text-sm text-white placeholder:text-silver-dim"
           />
         </div>
-        <div className="flex min-w-[130px] flex-col gap-1">
+        <div className={`flex ${FIELD_NARROW} flex-col gap-1`}>
           <label className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">Assign</label>
           <select
             value={memberId}
@@ -148,7 +164,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             ))}
           </select>
         </div>
-        <div className="flex min-w-[110px] flex-col gap-1">
+        <div className={`flex ${FIELD_NARROW} flex-col gap-1`}>
           <label className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">Priority</label>
           <select
             value={priority}
@@ -166,7 +182,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             </option>
           </select>
         </div>
-        <div className="flex min-w-[130px] flex-col gap-1">
+        <div className={`flex ${FIELD_NARROW} flex-col gap-1`}>
           <label className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">Due</label>
           <input
             type="date"
@@ -175,11 +191,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
             className="rounded-lg border border-border bg-transparent px-2 py-1.5 text-sm text-white"
           />
         </div>
-        <button
-          type="submit"
-          disabled={!title.trim() || creating}
-          className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/[0.05] disabled:opacity-40 disabled:hover:bg-transparent"
-        >
+        <button type="submit" disabled={!title.trim() || creating} className="btn-primary">
           {creating ? "Adding…" : "Add task"}
         </button>
       </form>
@@ -218,7 +230,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                 ))}
               </select>
               <button
-                onClick={() => deleteTask(t.id)}
+                onClick={() => setPendingDelete(t)}
                 className="shrink-0 text-[11px] text-silver-dim hover:text-red-400"
               >
                 Delete
@@ -227,6 +239,14 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete this task?"
+        body={`"${pendingDelete?.title ?? ""}" will be permanently removed.`}
+        onConfirm={handleDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

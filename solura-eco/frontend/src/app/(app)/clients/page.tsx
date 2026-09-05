@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import { StatusPill } from "@/components/StatusPill";
+
 type Client = {
   id: string;
   name: string;
@@ -68,13 +70,7 @@ export default async function ClientsPage() {
                     className="flex items-center justify-between gap-2 rounded-2xl border border-border bg-bg2 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-lg hover:shadow-black/20"
                   >
                     <div className="font-display text-base font-bold text-white">{c.name}</div>
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
-                        c.status === "active" ? "bg-cyan/15 text-cyan" : "bg-silver/15 text-silver"
-                      }`}
-                    >
-                      {c.status}
-                    </span>
+                    <StatusPill status={c.status} />
                   </Link>
                 ))}
               </div>

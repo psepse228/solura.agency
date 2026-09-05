@@ -53,7 +53,8 @@ export default async function UniLoadPage() {
 
   return (
     <div className="px-8 py-8 animate-fade-in-up">
-      <h1 className="mb-5 font-display text-2xl font-extrabold tracking-tight text-white">Uni load</h1>
+      <h1 className="mb-1 font-display text-2xl font-extrabold tracking-tight text-white">Uni load</h1>
+      <p className="mb-5 text-sm text-silver">Real courses, grades, and deadlines pulled straight from Canvas.</p>
 
       {!has_token ? (
         <CanvasTokenForm />

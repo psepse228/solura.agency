@@ -3,7 +3,9 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { DeleteClientButton } from "@/components/DeleteClientButton";
 import { NotesPanel } from "@/components/NotesPanel";
+import { StatusPill } from "@/components/StatusPill";
 
 type Note = { id: string; body: string; author: string; created_at: string };
 type ClientDetail = {
@@ -49,45 +51,38 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   if (!client) notFound();
 
   return (
-    <div className="px-8 py-8 animate-fade-in-up">
+    <div className="mx-auto max-w-2xl px-8 py-8 animate-fade-in-up">
       <Link href="/clients" className="mb-5 inline-flex items-center gap-1.5 text-xs text-silver hover:text-white">
         ← All clients
       </Link>
 
-      <div className="mb-6 flex items-center gap-3">
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{client.name}</h1>
-        <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
-            client.status === "active" ? "bg-cyan/15 text-cyan" : "bg-silver/15 text-silver"
-          }`}
-        >
-          {client.status}
-        </span>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{client.name}</h1>
+          <StatusPill status={client.status} />
+        </div>
+        <DeleteClientButton clientId={client.id} clientName={client.name} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="flex flex-col gap-4">
-          <Link
-            href={`/projects/${client.project_id}`}
-            className="flex flex-col gap-1 rounded-2xl border border-border bg-bg2 p-4 transition-colors hover:border-white/15"
-          >
-            <div className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">
-              Subscribed to
-            </div>
-            <div className="font-display text-base font-bold text-white">{client.project_name ?? "—"} ↗</div>
-          </Link>
+      <div className="flex flex-col gap-4">
+        <Link
+          href={`/projects/${client.project_id}`}
+          className="flex flex-col gap-1 rounded-2xl border border-border bg-bg2 p-4 transition-colors hover:border-white/15"
+        >
+          <div className="text-[10.5px] font-semibold uppercase tracking-wide text-silver-dim">Subscribed to</div>
+          <div className="font-display text-base font-bold text-white">{client.project_name ?? "—"} ↗</div>
+        </Link>
 
-          {(client.contact_name || client.contact_email || client.contact_phone) && (
-            <div className="rounded-2xl border border-border bg-bg2 p-5">
-              <div className="mb-3 text-xs font-bold uppercase tracking-wide text-silver-dim">Contact</div>
-              <div className="flex flex-col gap-1 text-[12.5px] text-silver">
-                {client.contact_name && <div>{client.contact_name}</div>}
-                {client.contact_email && <div>{client.contact_email}</div>}
-                {client.contact_phone && <div>{client.contact_phone}</div>}
-              </div>
+        {(client.contact_name || client.contact_email || client.contact_phone) && (
+          <div className="panel">
+            <div className="mb-3 text-xs font-bold uppercase tracking-wide text-silver-dim">Contact</div>
+            <div className="flex flex-col gap-1 text-[12.5px] text-silver">
+              {client.contact_name && <div>{client.contact_name}</div>}
+              {client.contact_email && <div>{client.contact_email}</div>}
+              {client.contact_phone && <div>{client.contact_phone}</div>}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <NotesPanel apiPath={`/api/clients/${client.id}/notes`} initialNotes={notes ?? []} />
       </div>

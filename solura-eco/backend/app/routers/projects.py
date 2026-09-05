@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.auth.deps import require_session
+from app.services.dev_activity import get_last_activity_by_project
 from app.services.supabase_client import get_client
 
 router = APIRouter()
@@ -39,20 +40,7 @@ def _attach_roles(db, projects: list) -> None:
 
 def _attach_last_activity(db, projects: list) -> None:
     project_ids = [p["id"] for p in projects]
-    if not project_ids:
-        return
-    events = (
-        db.table("dev_events")
-        .select("project_id,occurred_at")
-        .in_("project_id", project_ids)
-        .order("occurred_at", desc=True)
-        .execute()
-        .data
-    )
-    latest: dict = {}
-    for e in events:
-        if e["project_id"] not in latest:
-            latest[e["project_id"]] = e["occurred_at"]
+    latest = get_last_activity_by_project(db, project_ids)
     for p in projects:
         p["last_activity_at"] = latest.get(p["id"])
 

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends
 
 from app.auth.deps import require_session
+from app.services.dev_activity import get_last_activity_by_project
 from app.services.staleness import days_since_activity, is_stale
 from app.services.supabase_client import get_client
 
@@ -86,20 +87,7 @@ def _stale_projects(db, now: datetime) -> list[dict]:
     if not projects:
         return []
     project_ids = [p["id"] for p in projects]
-
-    events = (
-        db.table("dev_events")
-        .select("project_id,occurred_at")
-        .in_("project_id", project_ids)
-        .order("occurred_at", desc=True)
-        .execute()
-        .data
-    )
-    # events is already newest-first, so the first row seen per project_id
-    # is that project's most recent activity.
-    latest_by_project: dict[str, str] = {}
-    for e in events:
-        latest_by_project.setdefault(e["project_id"], e["occurred_at"])
+    latest_by_project = get_last_activity_by_project(db, project_ids)
 
     out = []
     for p in projects:

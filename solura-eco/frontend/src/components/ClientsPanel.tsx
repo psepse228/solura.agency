@@ -2,15 +2,21 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { StatusPill } from "@/components/StatusPill";
 
 type Client = { id: string; name: string; status: string };
 
 export function ClientsPanel({ projectId, initialClients }: { projectId: string; initialClients: Client[] }) {
+  const router = useRouter();
   const [clients, setClients] = useState(initialClients);
   const [name, setName] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Client | null>(null);
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
@@ -34,10 +40,22 @@ export function ClientsPanel({ projectId, initialClients }: { projectId: string;
     const created = (await res.json()) as Client;
     setClients([...clients, created]);
     setName("");
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    const res = await fetch(`/api/clients/${target.id}`, { method: "DELETE" });
+    if (res.ok) {
+      setClients(clients.filter((c) => c.id !== target.id));
+      router.refresh();
+    }
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-bg2 p-5">
+    <div className="panel">
       <div className="mb-3 text-xs font-bold uppercase tracking-wide text-silver-dim">Clients</div>
 
       <form onSubmit={handleAdd} className="mb-4 flex gap-2">
@@ -47,11 +65,7 @@ export function ClientsPanel({ projectId, initialClients }: { projectId: string;
           placeholder="Company name"
           className="flex-1 rounded-lg border border-border bg-transparent px-3 py-1.5 text-xs text-white placeholder:text-silver-dim"
         />
-        <button
-          type="submit"
-          disabled={!name.trim() || adding}
-          className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/[0.05] disabled:opacity-40 disabled:hover:bg-transparent"
-        >
+        <button type="submit" disabled={!name.trim() || adding} className="btn-primary shrink-0">
           {adding ? "Adding…" : "Add"}
         </button>
       </form>
@@ -62,23 +76,30 @@ export function ClientsPanel({ projectId, initialClients }: { projectId: string;
       ) : (
         <div className="flex flex-col gap-2">
           {clients.map((c) => (
-            <Link
-              key={c.id}
-              href={`/clients/${c.id}`}
-              className="flex items-center justify-between gap-2 rounded-lg bg-bg3 px-3 py-2 text-xs font-medium text-white hover:bg-white/[0.06]"
-            >
-              {c.name}
-              <span
-                className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold capitalize ${
-                  c.status === "active" ? "bg-cyan/15 text-cyan" : "bg-silver/15 text-silver"
-                }`}
+            <div key={c.id} className="row-hover flex items-center justify-between gap-2 rounded-lg bg-bg3 px-3 py-2">
+              <Link href={`/clients/${c.id}`} className="min-w-0 flex-1 truncate text-xs font-medium text-white">
+                {c.name}
+              </Link>
+              <StatusPill status={c.status} size="xs" />
+              <button
+                onClick={() => setPendingDelete(c)}
+                className="shrink-0 text-[10px] text-silver-dim hover:text-red-400"
               >
-                {c.status}
-              </span>
-            </Link>
+                Remove
+              </button>
+            </div>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Remove this client?"
+        body={`${pendingDelete?.name ?? ""} and all of its notes will be permanently removed.`}
+        confirmLabel="Remove"
+        onConfirm={handleDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

@@ -124,7 +124,7 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
           key={r.key}
           href={r.href}
           target={r.external ? "_blank" : undefined}
-          className="flex items-start gap-2 rounded-lg px-2.5 py-1.5 text-[12px] hover:bg-bg3"
+          className="row-hover flex items-start gap-2 rounded-lg px-2.5 py-1.5 text-[12px]"
         >
           <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${r.dot}`} />
           <span className="min-w-0 flex-1">

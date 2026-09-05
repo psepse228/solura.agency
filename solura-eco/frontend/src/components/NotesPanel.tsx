@@ -1,6 +1,7 @@
 // solura-eco/frontend/src/components/NotesPanel.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 type Note = { id: string; body: string; author: string; created_at: string };
@@ -14,6 +15,7 @@ function timeAgo(iso: string): string {
 }
 
 export function NotesPanel({ apiPath, initialNotes }: { apiPath: string; initialNotes: Note[] }) {
+  const router = useRouter();
   const [notes, setNotes] = useState(initialNotes);
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -34,11 +36,12 @@ export function NotesPanel({ apiPath, initialNotes }: { apiPath: string; initial
       const note = (await res.json()) as Note;
       setNotes([note, ...notes]);
       setDraft("");
+      router.refresh();
     }
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-bg2 p-5">
+    <div className="panel">
       <div className="mb-3 text-xs font-bold uppercase tracking-wide text-silver-dim">Notepad</div>
 
       <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-2">
@@ -49,11 +52,7 @@ export function NotesPanel({ apiPath, initialNotes }: { apiPath: string; initial
           rows={2}
           className="w-full resize-none rounded-lg border border-border bg-transparent px-3 py-2 text-[12.5px] text-white outline-none placeholder:text-silver-dim focus:border-cyan"
         />
-        <button
-          type="submit"
-          disabled={!draft.trim() || submitting}
-          className="self-end rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/[0.05] disabled:opacity-40 disabled:hover:bg-transparent"
-        >
+        <button type="submit" disabled={!draft.trim() || submitting} className="btn-primary self-end">
           {submitting ? "Adding…" : "Add note"}
         </button>
       </form>

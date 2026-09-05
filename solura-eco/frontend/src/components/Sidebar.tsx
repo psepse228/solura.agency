@@ -9,38 +9,45 @@ import { UrgentPanel, type UrgentData } from "@/components/UrgentPanel";
 // Business connection (a manual step, not code). Everything else here is
 // real and live. See architecture.md for the original build order.
 const NAV_ITEMS = [
-  { href: "/", label: "Projects", live: true },
-  { href: "/tasks", label: "Tasks", live: true },
-  { href: "/clients", label: "Clients work", live: true },
-  { href: "/uni-load", label: "Uni load", live: true },
-  { href: "/docs", label: "Docs & КП", live: true },
-  { href: "/leads", label: "Leads", live: false },
+  { href: "/", label: "Home", live: true, exact: true },
+  { href: "/projects", label: "Projects", live: true, exact: false },
+  { href: "/tasks", label: "Tasks", live: true, exact: false },
+  { href: "/clients", label: "Clients work", live: true, exact: false },
+  { href: "/uni-load", label: "Uni load", live: true, exact: false },
+  { href: "/docs", label: "Docs & КП", live: true, exact: false },
+  { href: "/leads", label: "Leads", live: false, exact: false },
 ];
+
+function isActive(pathname: string, item: (typeof NAV_ITEMS)[number]): boolean {
+  if (!item.live) return false;
+  if (item.exact) return pathname === item.href;
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
 
 export function Sidebar({ username, urgent }: { username: string; urgent: UrgentData | null }) {
   const pathname = usePathname();
 
   return (
     <aside className="sticky top-0 flex h-screen w-56 shrink-0 flex-col gap-7 border-r border-border bg-bg2 p-4">
-      <div className="flex items-center gap-2.5 px-1">
+      <Link href="/" className="flex items-center gap-2.5 px-1">
         <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-[image:var(--grad)] font-display text-[13px] font-extrabold text-bg">
           S
         </div>
         <span className="font-display text-base font-extrabold tracking-tight">Solura Eco</span>
-      </div>
+      </Link>
 
       <nav className="flex flex-col gap-0.5">
         {NAV_ITEMS.map((item) => {
-          const active = item.live && pathname === item.href;
-          const className = `block rounded-lg px-2.5 py-2 text-[13.5px] font-medium ${
-            active ? "bg-bg3 text-white" : "text-silver-dim"
+          const active = isActive(pathname, item);
+          const className = `block rounded-lg px-2.5 py-2 text-[13.5px] font-medium transition-colors ${
+            active ? "bg-bg3 text-white" : "text-silver-dim hover:bg-white/[0.04] hover:text-white"
           }`;
           return item.live ? (
             <Link key={item.href} href={item.href} className={className}>
               {item.label}
             </Link>
           ) : (
-            <span key={item.href} className={`${className} cursor-default opacity-50`} title="Coming soon">
+            <span key={item.href} className={`${className} cursor-default opacity-50 hover:bg-transparent hover:text-silver-dim`} title="Coming soon">
               {item.label}
             </span>
           );

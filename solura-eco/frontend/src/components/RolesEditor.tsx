@@ -31,7 +31,7 @@ function RoleCheckboxGroup({
       ) : (
         <div className="flex flex-col gap-2">
           {allMembers.map((m) => (
-            <label key={m.id} className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs font-medium transition-colors hover:bg-white/[0.03]">
+            <label key={m.id} className="row-hover flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs font-medium">
               <input
                 type="checkbox"
                 checked={selectedIds.has(m.id)}
@@ -99,7 +99,7 @@ export function RolesEditor({ projectId, initialDevMembers, initialClientWorkMem
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-bg2 p-5">
+    <div className="panel">
       <div className="mb-4 flex items-center justify-between">
         <div className="text-xs font-bold uppercase tracking-wide text-silver-dim">Roles</div>
         {saving && <span className="text-[10px] text-silver-dim">Saving…</span>}

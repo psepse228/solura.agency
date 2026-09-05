@@ -35,7 +35,7 @@ export function CanvasTokenForm() {
   }
 
   return (
-    <div className="mx-auto mt-16 max-w-md rounded-2xl border border-border bg-bg2 p-6">
+    <div className="mx-auto mt-6 max-w-md rounded-2xl border border-border bg-bg2 p-6">
       <h2 className="font-display text-lg font-bold text-white">Connect Canvas</h2>
       <p className="mt-1.5 text-[12.5px] leading-relaxed text-silver">
         Paste a Canvas personal access token to see your own assignments here. Generate one at{" "}
@@ -58,11 +58,7 @@ export function CanvasTokenForm() {
           placeholder="Canvas access token"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm text-white placeholder:text-silver-dim"
         />
-        <button
-          type="submit"
-          disabled={!token.trim() || saving}
-          className="self-end rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/[0.05] disabled:opacity-40 disabled:hover:bg-transparent"
-        >
+        <button type="submit" disabled={!token.trim() || saving} className="btn-primary self-end">
           {saving ? "Verifying…" : "Save token"}
         </button>
         {error && <p className="text-[11px] text-red-400">{error}</p>}

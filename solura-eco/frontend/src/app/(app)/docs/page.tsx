@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import { DOC_TYPE_LABELS, formatSize } from "@/lib/documents";
+
 type Document = {
   id: string;
   filename: string;
@@ -12,18 +14,6 @@ type Document = {
   project_name: string | null;
   uploaded_by_name: string | null;
 };
-
-const DOC_TYPE_LABELS: Record<string, string> = {
-  kp: "КП",
-  presentation: "Presentation",
-  other: "Other",
-};
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 async function getDocuments(token: string | undefined): Promise<Document[]> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;

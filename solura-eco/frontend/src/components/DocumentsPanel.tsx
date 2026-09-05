@@ -1,7 +1,11 @@
 // solura-eco/frontend/src/components/DocumentsPanel.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { DOC_TYPE_LABELS, formatSize } from "@/lib/documents";
 
 type Document = {
   id: string;
@@ -12,18 +16,6 @@ type Document = {
   created_at: string;
 };
 
-const DOC_TYPE_LABELS: Record<string, string> = {
-  kp: "КП",
-  presentation: "Presentation",
-  other: "Other",
-};
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export function DocumentsPanel({
   projectId,
   initialDocuments,
@@ -31,11 +23,13 @@ export function DocumentsPanel({
   projectId: string;
   initialDocuments: Document[];
 }) {
+  const router = useRouter();
   const [documents, setDocuments] = useState(initialDocuments);
   const [docType, setDocType] = useState("kp");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Document | null>(null);
 
   async function handleUpload(e: FormEvent) {
     e.preventDefault();
@@ -62,18 +56,22 @@ export function DocumentsPanel({
     const doc = (await res.json()) as Document;
     setDocuments([doc, ...documents]);
     setFile(null);
+    router.refresh();
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this document? This can't be undone.")) return;
-    const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    const res = await fetch(`/api/documents/${target.id}`, { method: "DELETE" });
     if (res.ok) {
-      setDocuments(documents.filter((d) => d.id !== id));
+      setDocuments(documents.filter((d) => d.id !== target.id));
+      router.refresh();
     }
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-bg2 p-5">
+    <div className="panel">
       <div className="mb-3 text-xs font-bold uppercase tracking-wide text-silver-dim">Documents</div>
 
       <form onSubmit={handleUpload} className="mb-4 flex flex-col gap-2">
@@ -99,11 +97,7 @@ export function DocumentsPanel({
             className="flex-1 text-xs text-silver file:mr-2 file:rounded-md file:border file:border-border file:bg-bg3 file:px-2 file:py-1 file:text-xs file:text-white"
           />
         </div>
-        <button
-          type="submit"
-          disabled={!file || uploading}
-          className="self-end rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/[0.05] disabled:opacity-40 disabled:hover:bg-transparent"
-        >
+        <button type="submit" disabled={!file || uploading} className="btn-primary self-end">
           {uploading ? "Uploading…" : "Upload"}
         </button>
         {error && <p className="text-[11px] text-red-400">{error}</p>}
@@ -134,7 +128,7 @@ export function DocumentsPanel({
                   Download
                 </a>
                 <button
-                  onClick={() => handleDelete(d.id)}
+                  onClick={() => setPendingDelete(d)}
                   className="text-[11px] text-silver-dim hover:text-red-400"
                 >
                   Delete
@@ -144,6 +138,14 @@ export function DocumentsPanel({
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete this document?"
+        body={`"${pendingDelete?.filename ?? ""}" will be permanently removed. This can't be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
