@@ -135,3 +135,46 @@ async def delete_task(task_id: str, _: dict = Depends(require_session)):
     if not result.data:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"ok": True}
+
+
+class CommentIn(BaseModel):
+    body: str
+
+
+@router.get("/{task_id}/comments")
+async def list_task_comments(task_id: str, _: dict = Depends(require_session)):
+    db = get_client()
+    comments = (
+        db.table("task_comments")
+        .select("id,body,created_at,members(id,full_name)")
+        .eq("task_id", task_id)
+        .order("created_at", desc=True)
+        .execute()
+        .data
+    )
+    for c in comments:
+        author = c.pop("members", None)
+        c["author"] = author["full_name"] if author else "Unknown"
+    return comments
+
+
+@router.post("/{task_id}/comments")
+async def create_task_comment(task_id: str, payload: CommentIn, session: dict = Depends(require_session)):
+    if not payload.body.strip():
+        raise HTTPException(status_code=400, detail="Comment body cannot be empty")
+
+    db = get_client()
+    row = {
+        "task_id": task_id,
+        "member_id": session["member_id"],
+        "body": payload.body.strip(),
+    }
+    result = db.table("task_comments").insert(row).execute().data[0]
+
+    # Attach the author's name the same shape as the GET response, rather
+    # than making the frontend do a second round-trip to find out who
+    # session['member_id'] resolves to (same reasoning as
+    # create_project_note/create_client_note).
+    member = db.table("members").select("full_name").eq("id", session["member_id"]).execute().data
+    result["author"] = member[0]["full_name"] if member else session["username"]
+    return result

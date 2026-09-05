@@ -5,9 +5,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { Modal } from "@/components/Modal";
+import { NotesPanel } from "@/components/NotesPanel";
+
+type Comment = { id: string; body: string; author: string; created_at: string };
 
 type Member = { id: string; full_name: string };
 type Task = {
@@ -31,6 +34,16 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
   const [dueAt, setDueAt] = useState(task.due_at ? task.due_at.slice(0, 10) : "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    fetch(`/api/tasks/${task.id}/comments`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((c: Comment[]) => setComments(c))
+      .catch(() => setComments([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -140,6 +153,10 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
             </button>
           </div>
         </form>
+
+        <div className="mt-4 border-t border-white/5 pt-4">
+          <NotesPanel apiPath={`/api/tasks/${task.id}/comments`} initialNotes={comments} />
+        </div>
       </Modal>
     </>
   );
