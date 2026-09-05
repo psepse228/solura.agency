@@ -1,8 +1,11 @@
 # solura-eco/backend/app/routers/telegram_business.py
-"""Telegram Business webhook -- resolves each inbound message to a client
-(matching or auto-creating), persists it, and posts a GPT-4o summary as a
-client note. Read-only monitoring: never sends anything back to Telegram.
-See docs/superpowers/specs/2026-09-04-telegram-lead-monitoring-design.md.
+"""Telegram Business webhook -- resolves each inbound message to an
+existing client (phone match) or a new lead (no match -- a random
+Telegram contact isn't known to belong to any project, so it can't
+become a `clients` row; see 0018_telegram_conversations_leads.sql),
+persists it, and posts a GPT-4o summary (client note, or appended to the
+lead's own notes field). Read-only monitoring: never sends anything back
+to Telegram. See docs/superpowers/specs/2026-09-04-telegram-lead-monitoring-design.md.
 """
 from datetime import datetime, timezone
 
@@ -17,9 +20,9 @@ from app.telegram.verify import verify_telegram_signature
 router = APIRouter()
 
 
-def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, contact_phone: str | None):
+def _get_or_create_conversation(db, connection_id: str, chat: dict, contact_phone: str | None):
     """Returns the telegram_conversations row, creating it (and possibly a
-    new solura_eco.clients row) if this is a brand-new chat.
+    new lead, or matching an existing client) if this is a brand-new chat.
 
     Uses `chat.get("id")`, not `chat["id"]` -- a malformed webhook payload
     (missing "chat" entirely, defaulting to {}) must never raise KeyError
@@ -40,21 +43,31 @@ def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, c
     if existing:
         return existing[0]
 
+    normalized_phone = normalize_phone(contact_phone) if contact_phone else None
     client_id = None
-    if contact_phone:
-        normalized = normalize_phone(contact_phone)
-        matches = db.table("clients").select("id").eq("contact_phone", normalized).execute().data
+    if normalized_phone:
+        matches = db.table("clients").select("id").eq("contact_phone", normalized_phone).execute().data
         if matches:
             client_id = matches[0]["id"]
 
-    created_client_id = None
+    # No phone match -> this Telegram contact isn't known to belong to any
+    # project yet, so it becomes a lead (source='telegram'), not a client
+    # (clients.project_id is NOT NULL, and there's no project to guess
+    # here -- see 0018_telegram_conversations_leads.sql).
+    lead_id = None
+    created_lead_id = None
     if not client_id:
         display_name = " ".join(
             part for part in [chat.get("first_name"), chat.get("last_name")] if part
         ) or chat.get("username") or f"Telegram user {chat_id}"
-        new_client = db.table("clients").insert({"name": display_name, "status": "active"}).execute().data[0]
-        client_id = new_client["id"]
-        created_client_id = client_id
+        new_lead = (
+            db.table("leads")
+            .insert({"name": display_name, "contact_phone": normalized_phone, "source": "telegram"})
+            .execute()
+            .data[0]
+        )
+        lead_id = new_lead["id"]
+        created_lead_id = lead_id
 
     try:
         conversation = (
@@ -63,6 +76,7 @@ def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, c
                 {
                     "connection_id": connection_id,
                     "client_id": client_id,
+                    "lead_id": lead_id,
                     "telegram_chat_id": chat_id,
                     "telegram_first_name": chat.get("first_name"),
                     "telegram_username": chat.get("username"),
@@ -77,7 +91,7 @@ def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, c
         # redelivers on timeout/5xx) can beat us here -- the unique
         # constraint on (connection_id, telegram_chat_id) rejects our
         # insert. The winning request's conversation already exists; use
-        # it instead of erroring, and clean up the client row we
+        # it instead of erroring, and clean up the lead row we
         # speculatively created (safe: it's brand new, created in this
         # same call, and no conversation references it -- nothing else
         # could have linked to it yet).
@@ -89,8 +103,8 @@ def _get_or_create_client_for_conversation(db, connection_id: str, chat: dict, c
             .execute()
             .data
         )
-        if created_client_id:
-            db.table("clients").delete().eq("id", created_client_id).execute()
+        if created_lead_id:
+            db.table("leads").delete().eq("id", created_lead_id).execute()
         if existing_after_race:
             return existing_after_race[0]
         raise
@@ -163,7 +177,7 @@ async def telegram_business_webhook(request: Request):
     contact = message.get("contact")
     contact_phone = contact.get("phone_number") if contact else None
 
-    conversation = _get_or_create_client_for_conversation(db, connection_id, chat, contact_phone)
+    conversation = _get_or_create_conversation(db, connection_id, chat, contact_phone)
     if conversation is None:
         return {"ok": True, "skipped": "message has no usable chat id"}
 
@@ -209,13 +223,21 @@ async def telegram_business_webhook(request: Request):
         ).eq("id", conversation["id"]).execute()
 
         note_body = f"{summary_result['summary']}\n\nNext step: {summary_result['next_step']}"
-        db.table("client_notes").insert(
-            {
-                "client_id": conversation["client_id"],
-                "member_id": None,
-                "author_label": "Telegram bot",
-                "body": note_body,
-            }
-        ).execute()
+        if conversation.get("client_id"):
+            db.table("client_notes").insert(
+                {
+                    "client_id": conversation["client_id"],
+                    "member_id": None,
+                    "author_label": "Telegram bot",
+                    "body": note_body,
+                }
+            ).execute()
+        elif conversation.get("lead_id"):
+            # Leads have no separate notes-log table (unlike clients) --
+            # append to the single notes text field instead.
+            lead = db.table("leads").select("notes").eq("id", conversation["lead_id"]).execute().data
+            existing_notes = (lead[0]["notes"] if lead else None) or ""
+            updated_notes = f"{existing_notes}\n\n{note_body}".strip()
+            db.table("leads").update({"notes": updated_notes}).eq("id", conversation["lead_id"]).execute()
 
     return {"ok": True}

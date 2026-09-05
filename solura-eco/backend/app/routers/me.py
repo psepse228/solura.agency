@@ -106,11 +106,16 @@ def _client_messages(db, now: datetime) -> list[dict]:
     """Conversations with a new inbound message in the last
     FRESH_MESSAGE_HOURS hours -- an honest "something new here" signal, not
     a claim about whether anyone replied (this integration never tracks a
-    reply event at all, see the design doc). Team-wide."""
+    reply event at all, see the design doc). Team-wide.
+
+    A conversation's contact is either an existing client (phone matched)
+    or a lead (no match) -- left joins on both, never `!inner`, since
+    0018_telegram_conversations_leads.sql made client_id nullable and
+    an inner join on either side would silently drop the other kind."""
     cutoff = (now - timedelta(hours=FRESH_MESSAGE_HOURS)).isoformat()
     rows = (
         db.table("telegram_conversations")
-        .select("id,client_id,last_message_at,clients!inner(name)")
+        .select("id,client_id,lead_id,last_message_at,clients(name),leads(name)")
         .not_.is_("last_message_at", "null")
         .gte("last_message_at", cutoff)
         .order("last_message_at", desc=True)
@@ -121,11 +126,13 @@ def _client_messages(db, now: datetime) -> list[dict]:
     out = []
     for r in rows:
         client = r.get("clients") or {}
+        lead = r.get("leads") or {}
         out.append(
             {
                 "id": r["id"],
                 "client_id": r["client_id"],
-                "client_name": client.get("name"),
+                "lead_id": r["lead_id"],
+                "client_name": client.get("name") or lead.get("name"),
                 "last_message_at": r["last_message_at"],
             }
         )

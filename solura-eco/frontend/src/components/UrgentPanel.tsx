@@ -14,7 +14,8 @@ type StaleProject = {
 };
 type ClientMessage = {
   id: string;
-  client_id: string;
+  client_id: string | null;
+  lead_id: string | null;
   client_name: string | null;
   last_message_at: string;
 };
@@ -103,9 +104,9 @@ export function UrgentPanel({ data }: { data: UrgentData }) {
   for (const m of data.client_messages) {
     rows.push({
       key: `client-${m.id}`,
-      label: m.client_name ?? "Unknown client",
+      label: m.client_name ?? "Unknown contact",
       sub: `new message · ${formatRelativePast(m.last_message_at)}`,
-      href: `/clients/${m.client_id}`,
+      href: m.client_id ? `/clients/${m.client_id}` : "/leads",
       external: false,
       dot: "bg-amber-400",
       sortAt: new Date(m.last_message_at).getTime() + FRESH_MESSAGE_HOURS * HOUR_MS,
