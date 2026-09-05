@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
 
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { TaskEditPanel } from "@/components/TaskEditPanel";
 
 type Member = { id: string; full_name: string };
 type Task = {
@@ -129,6 +130,7 @@ function SubtaskChecklist({
 function TaskCard({
   task,
   subtasks,
+  members,
   draggable,
   onDragStart,
   onDelete,
@@ -138,6 +140,7 @@ function TaskCard({
 }: {
   task: Task;
   subtasks: Task[];
+  members: Member[];
   draggable: boolean;
   onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
   onDelete: () => void;
@@ -162,6 +165,7 @@ function TaskCard({
             {formatDue(task.due_at) && ` · due ${formatDue(task.due_at)}`}
           </div>
         </div>
+        <TaskEditPanel task={task} members={members} />
         <button onClick={onDelete} className="shrink-0 text-[10px] text-silver-dim hover:text-red-400">
           ✕
         </button>
@@ -418,6 +422,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                       key={t.id}
                       task={t}
                       subtasks={subtasksOf[t.id] ?? []}
+                      members={members}
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}
                       onDelete={() => setPendingDelete(t)}
@@ -481,6 +486,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                       </option>
                     ))}
                   </select>
+                  <TaskEditPanel task={t} members={members} />
                   <button
                     onClick={() => setPendingDelete(t)}
                     className="shrink-0 text-[11px] text-silver-dim hover:text-red-400"
