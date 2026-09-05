@@ -7,10 +7,19 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
+import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { Modal } from "@/components/Modal";
 import { NotesPanel } from "@/components/NotesPanel";
 
 type Comment = { id: string; body: string; author: string; created_at: string };
+type TaskDocument = {
+  id: string;
+  filename: string;
+  doc_type: string;
+  size_bytes: number;
+  uploaded_by_name: string | null;
+  created_at: string;
+};
 
 type Member = { id: string; full_name: string };
 type Task = {
@@ -35,6 +44,7 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [documents, setDocuments] = useState<TaskDocument[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -42,6 +52,10 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
       .then((res) => (res.ok ? res.json() : []))
       .then((c: Comment[]) => setComments(c))
       .catch(() => setComments([]));
+    fetch(`/api/tasks/${task.id}/documents`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((d: TaskDocument[]) => setDocuments(d))
+      .catch(() => setDocuments([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -161,6 +175,14 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
             </button>
           </div>
         </form>
+
+        <div className="mt-4 border-t border-white/5 pt-4">
+          <DocumentsPanel
+            uploadUrl={`/api/tasks/${task.id}/documents`}
+            initialDocuments={documents}
+            showDocType={false}
+          />
+        </div>
 
         <div className="mt-4 border-t border-white/5 pt-4">
           <NotesPanel apiPath={`/api/tasks/${task.id}/comments`} initialNotes={comments} />

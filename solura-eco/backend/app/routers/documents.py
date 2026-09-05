@@ -1,10 +1,11 @@
 # solura-eco/backend/app/routers/documents.py
-"""Documents API -- upload/list/download/delete for the project-scoped
-docs library. Not part of projects.py or clients.py: this owns both
-project-scoped paths (POST/GET .../documents) and document-scoped paths
-(download/delete by document id), which don't fit either existing
-router's prefix cleanly -- so it declares full paths and mounts with no
-prefix of its own (see main.py).
+"""Documents API -- upload/list/download/delete, either project-scoped
+(the docs library) or task-scoped (an attachment on a work task, see
+0022_document_task_attachments.sql). Not part of projects.py/tasks.py:
+this owns both owner-scoped paths (POST/GET .../documents) and
+document-scoped paths (download/delete by document id), which don't fit
+either existing router's prefix cleanly -- so it declares full paths and
+mounts with no prefix of its own (see main.py).
 """
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
@@ -28,13 +29,11 @@ MAX_SIZE_BYTES = 25 * 1024 * 1024
 ALLOWED_DOC_TYPES = ("kp", "presentation", "other")
 
 
-@router.post("/projects/{project_id}/documents")
-async def upload_document(
-    project_id: str,
-    file: UploadFile = File(...),
-    doc_type: str = Form(...),
-    session: dict = Depends(require_session),
-):
+async def _upload(owner_field: str, owner_id: str, file: UploadFile, doc_type: str, session: dict) -> dict:
+    """Shared upload path for both owner kinds (project/task) -- same
+    validation, same collision-avoidance, same orphan-cleanup-on-failure.
+    owner_field is 'project_id' or 'task_id', the column this upload
+    belongs to."""
     if doc_type not in ALLOWED_DOC_TYPES:
         raise HTTPException(status_code=400, detail=f"doc_type must be one of: {', '.join(ALLOWED_DOC_TYPES)}")
 
@@ -57,20 +56,20 @@ async def upload_document(
     existing = (
         db.table("documents")
         .select("storage_path")
-        .eq("project_id", project_id)
-        .like("storage_path", f"{project_id}/{stem}%")
+        .eq(owner_field, owner_id)
+        .like("storage_path", f"{owner_id}/{stem}%")
         .execute()
         .data
     )
     existing_paths = {d["storage_path"] for d in existing}
-    storage_path = unique_storage_path(project_id, file.filename, existing_paths)
+    storage_path = unique_storage_path(owner_id, file.filename, existing_paths)
 
     storage = get_storage()
     storage.upload(storage_path, body, {"content-type": file.content_type})
 
     try:
         row = {
-            "project_id": project_id,
+            owner_field: owner_id,
             "doc_type": doc_type,
             "filename": file.filename,
             "storage_path": storage_path,
@@ -88,13 +87,12 @@ async def upload_document(
     return result
 
 
-@router.get("/projects/{project_id}/documents")
-async def list_documents(project_id: str, _: dict = Depends(require_session)):
+def _list(owner_field: str, owner_id: str) -> list[dict]:
     db = get_client()
     docs = (
         db.table("documents")
         .select("id,doc_type,filename,size_bytes,created_at,members(full_name)")
-        .eq("project_id", project_id)
+        .eq(owner_field, owner_id)
         .order("created_at", desc=True)
         .execute()
         .data
@@ -103,6 +101,37 @@ async def list_documents(project_id: str, _: dict = Depends(require_session)):
         member = d.pop("members", None)
         d["uploaded_by_name"] = member["full_name"] if member else None
     return docs
+
+
+@router.post("/projects/{project_id}/documents")
+async def upload_document(
+    project_id: str,
+    file: UploadFile = File(...),
+    doc_type: str = Form(...),
+    session: dict = Depends(require_session),
+):
+    return await _upload("project_id", project_id, file, doc_type, session)
+
+
+@router.get("/projects/{project_id}/documents")
+async def list_documents(project_id: str, _: dict = Depends(require_session)):
+    return _list("project_id", project_id)
+
+
+@router.post("/tasks/{task_id}/documents")
+async def upload_task_document(
+    task_id: str,
+    file: UploadFile = File(...),
+    session: dict = Depends(require_session),
+):
+    # A task attachment doesn't need the KП/presentation distinction --
+    # always 'other', no doc_type picker in the UI for this path.
+    return await _upload("task_id", task_id, file, "other", session)
+
+
+@router.get("/tasks/{task_id}/documents")
+async def list_task_documents(task_id: str, _: dict = Depends(require_session)):
+    return _list("task_id", task_id)
 
 
 @router.get("/documents")

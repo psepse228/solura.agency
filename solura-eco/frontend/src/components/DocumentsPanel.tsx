@@ -17,11 +17,17 @@ type Document = {
 };
 
 export function DocumentsPanel({
-  projectId,
+  uploadUrl,
   initialDocuments,
+  showDocType = true,
 }: {
-  projectId: string;
+  /** Where to POST the upload -- /api/projects/{id}/documents or
+      /api/tasks/{id}/documents. */
+  uploadUrl: string;
   initialDocuments: Document[];
+  /** Task attachments skip the КП/Presentation/Other picker -- the
+      backend always records those as 'other', there's no reason to ask. */
+  showDocType?: boolean;
 }) {
   const router = useRouter();
   const [documents, setDocuments] = useState(initialDocuments);
@@ -39,9 +45,9 @@ export function DocumentsPanel({
     setError(null);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("doc_type", docType);
+    if (showDocType) formData.append("doc_type", docType);
 
-    const res = await fetch(`/api/projects/${projectId}/documents`, {
+    const res = await fetch(uploadUrl, {
       method: "POST",
       body: formData,
     });
@@ -76,21 +82,23 @@ export function DocumentsPanel({
 
       <form onSubmit={handleUpload} className="mb-4 flex flex-col gap-2">
         <div className="flex gap-2">
-          <select
-            value={docType}
-            onChange={(e) => setDocType(e.target.value)}
-            className="rounded-lg border border-border bg-transparent px-2 py-1.5 text-xs text-white"
-          >
-            <option value="kp" className="bg-bg2">
-              КП
-            </option>
-            <option value="presentation" className="bg-bg2">
-              Presentation
-            </option>
-            <option value="other" className="bg-bg2">
-              Other
-            </option>
-          </select>
+          {showDocType && (
+            <select
+              value={docType}
+              onChange={(e) => setDocType(e.target.value)}
+              className="rounded-lg border border-border bg-transparent px-2 py-1.5 text-xs text-white"
+            >
+              <option value="kp" className="bg-bg2">
+                КП
+              </option>
+              <option value="presentation" className="bg-bg2">
+                Presentation
+              </option>
+              <option value="other" className="bg-bg2">
+                Other
+              </option>
+            </select>
+          )}
           <input
             type="file"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}

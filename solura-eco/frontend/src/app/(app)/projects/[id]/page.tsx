@@ -237,7 +237,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
           <NotesPanel apiPath={`/api/projects/${project.id}/notes`} initialNotes={notes ?? []} />
 
-          <DocumentsPanel projectId={project.id} initialDocuments={documents ?? []} />
+          <DocumentsPanel uploadUrl={`/api/projects/${project.id}/documents`} initialDocuments={documents ?? []} />
         </div>
       </div>
     </div>

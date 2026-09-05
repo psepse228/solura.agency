@@ -25,14 +25,18 @@ def safe_stem(filename: str) -> str:
     return ascii_stem or "file"
 
 
-def unique_storage_path(project_id: str, filename: str, existing_paths: set) -> str:
+def unique_storage_path(owner_id: str, filename: str, existing_paths: set) -> str:
+    """owner_id: whatever this document belongs to -- a project or a task
+    (task attachments, see 0022_document_task_attachments.sql) -- just a
+    folder prefix, no meaning beyond keeping different owners' uploads
+    from colliding."""
     raw_ext = filename.rsplit(".", 1)[1] if "." in filename else ""
     ext = re.sub(r"[^A-Za-z0-9]+", "", raw_ext)
     stem = safe_stem(filename)
     suffix = f".{ext}" if ext else ""
 
-    candidate = f"{project_id}/{stem}{suffix}"
+    candidate = f"{owner_id}/{stem}{suffix}"
     if candidate not in existing_paths:
         return candidate
 
-    return f"{project_id}/{stem}-{secrets.token_hex(4)}{suffix}"
+    return f"{owner_id}/{stem}-{secrets.token_hex(4)}{suffix}"
