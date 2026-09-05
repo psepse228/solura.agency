@@ -26,7 +26,13 @@ async def vercel_webhook(request: Request):
     if not verify_vercel_signature(body, signature, settings.vercel_webhook_secret):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except ValueError:
+        return {"ok": True, "skipped": "malformed payload"}
+    if not isinstance(payload, dict):
+        return {"ok": True, "skipped": "malformed payload"}
+
     event_type = payload.get("type")
     if event_type not in ("deployment.succeeded", "deployment.error"):
         return {"ok": True, "skipped": "not a tracked deployment event"}
@@ -69,7 +75,13 @@ async def railway_webhook(secret: str, request: Request):
     if not verify_railway_secret(secret, settings.railway_webhook_secret):
         raise HTTPException(status_code=401, detail="Invalid secret")
 
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except ValueError:
+        return {"ok": True, "skipped": "malformed payload"}
+    if not isinstance(payload, dict):
+        return {"ok": True, "skipped": "malformed payload"}
+
     details = payload.get("details") or {}
     status = details.get("status")
     if status not in ("SUCCESS", "FAILED"):
