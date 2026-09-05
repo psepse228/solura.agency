@@ -56,28 +56,35 @@ export function GraphView({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) {
         .nodeId("id")
         .nodeLabel("label")
         .nodeColor((n: GraphNode) => CATEGORY_COLOR[n.category ?? ""] ?? DEFAULT_COLOR)
-        .nodeVal((n: GraphNode) => 1.5 + (degree[n.id!] ?? 0) * 0.8)
-        .nodeRelSize(3)
-        .linkColor(() => "rgba(255,255,255,0.12)")
-        .linkWidth(1)
+        .nodeVal((n: GraphNode) => 0.6 + (degree[n.id!] ?? 0) * 0.3)
+        .nodeRelSize(2)
+        .linkColor(() => "rgba(255,255,255,0.1)")
+        .linkWidth(0.6)
         .nodeCanvasObject((node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
-          const label = node.label;
           const x = node.x ?? 0;
           const y = node.y ?? 0;
-          const val = 1.5 + (degree[node.id!] ?? 0) * 0.8;
-          const r = Math.sqrt(val) * 3;
+          const nodeDegree = degree[node.id!] ?? 0;
+          const val = 0.6 + nodeDegree * 0.3;
+          const r = Math.sqrt(val) * 2;
 
           ctx.beginPath();
           ctx.arc(x, y, r, 0, 2 * Math.PI);
           ctx.fillStyle = CATEGORY_COLOR[node.category ?? ""] ?? DEFAULT_COLOR;
           ctx.fill();
 
-          const fontSize = Math.max(10 / globalScale, 3);
+          // Only label hubs at a normal zoom level -- every node's label
+          // at once (the original behavior) was unreadable overlap.
+          // Peripheral nodes' labels fade in once the viewer actually
+          // zooms in on them, matching how Obsidian's own graph declutters.
+          const showLabel = globalScale > 2.2 || nodeDegree >= 4;
+          if (!showLabel) return;
+
+          const fontSize = Math.max(6 / globalScale, 1.8);
           ctx.font = `${fontSize}px DM Sans, sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "top";
           ctx.fillStyle = "rgba(241,245,249,0.85)";
-          ctx.fillText(label, x, y + r + 2);
+          ctx.fillText(node.label, x, y + r + 1.5);
         })
         .onNodeClick((node: GraphNode) => {
           router.push(`/brain/${node.id}`);
@@ -87,6 +94,10 @@ export function GraphView({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) {
             containerRef.current.style.cursor = node ? "pointer" : "default";
           }
         });
+
+      // Spread nodes further apart -- the default charge strength packed
+      // everything too tightly for the labels to stay readable.
+      graph.d3Force("charge")?.strength(-80);
 
       const resize = () => {
         if (containerRef.current && graph) {
