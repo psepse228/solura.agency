@@ -17,6 +17,7 @@ from app.routers import (
     leads,
     me,
     members,
+    notifications,
     projects,
     search,
     tasks,
@@ -42,6 +43,7 @@ app.include_router(canvas.router, prefix="/canvas", tags=["canvas"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 app.include_router(leads.router, prefix="/leads", tags=["leads"])
 app.include_router(search.router, prefix="/search", tags=["search"])
+app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])
 app.include_router(members.router, prefix="/members", tags=["members"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])

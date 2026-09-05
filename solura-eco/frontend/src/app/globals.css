@@ -33,6 +33,30 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Every scrollable area (the page body, a modal, a chat thread) was
+   rendering the browser's own default light scrollbar against this
+   dark UI -- caught live on the task edit modal. Firefox's standard
+   properties plus the Chromium/WebKit pseudo-elements cover every
+   browser this app is actually used in. */
+* {
+  scrollbar-color: var(--bg3) transparent;
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--bg3);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--silver-dim);
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 700;

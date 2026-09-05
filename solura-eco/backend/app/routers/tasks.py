@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.auth.deps import require_session
+from app.services.notify import notify
 from app.services.supabase_client import get_client
 
 router = APIRouter()
@@ -62,7 +63,7 @@ async def list_tasks(_: dict = Depends(require_session)):
 
 
 @router.post("")
-async def create_task(payload: TaskIn, _: dict = Depends(require_session)):
+async def create_task(payload: TaskIn, session: dict = Depends(require_session)):
     if payload.priority not in PRIORITIES:
         raise HTTPException(status_code=400, detail=f"priority must be one of: {', '.join(PRIORITIES)}")
 
@@ -91,11 +92,22 @@ async def create_task(payload: TaskIn, _: dict = Depends(require_session)):
         .execute()
         .data[0]
     )
+
+    if payload.member_id:
+        notify(
+            db,
+            member_id=payload.member_id,
+            actor_member_id=session["member_id"],
+            type="task_assigned",
+            title=f"Assigned: {payload.title}",
+            href="/tasks",
+        )
+
     return result
 
 
 @router.patch("/{task_id}")
-async def update_task(task_id: str, payload: TaskUpdate, _: dict = Depends(require_session)):
+async def update_task(task_id: str, payload: TaskUpdate, session: dict = Depends(require_session)):
     updates = payload.model_dump(exclude_none=True)
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -122,10 +134,32 @@ async def update_task(task_id: str, payload: TaskUpdate, _: dict = Depends(requi
         if parent[0]["parent_task_id"]:
             raise HTTPException(status_code=400, detail="A subtask can't itself have subtasks")
 
+    # A reassignment notification only makes sense if the assignee is
+    # actually changing -- the edit form always sends member_id on every
+    # save (title-only edits included), so presence in `updates` alone
+    # would notify on every unrelated edit.
+    previous_member_id = None
+    if "member_id" in updates:
+        existing = db.table("work_tasks").select("member_id,title").eq("id", task_id).execute().data
+        if existing:
+            previous_member_id = existing[0]["member_id"]
+
     result = db.table("work_tasks").update(updates).eq("id", task_id).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Task not found")
-    return result.data[0]
+    updated = result.data[0]
+
+    if "member_id" in updates and updates["member_id"] != previous_member_id:
+        notify(
+            db,
+            member_id=updates["member_id"],
+            actor_member_id=session["member_id"],
+            type="task_assigned",
+            title=f"Assigned: {updated['title']}",
+            href="/tasks",
+        )
+
+    return updated
 
 
 @router.delete("/{task_id}")
@@ -177,4 +211,17 @@ async def create_task_comment(task_id: str, payload: CommentIn, session: dict = 
     # create_project_note/create_client_note).
     member = db.table("members").select("full_name").eq("id", session["member_id"]).execute().data
     result["author"] = member[0]["full_name"] if member else session["username"]
+
+    task = db.table("work_tasks").select("title,member_id").eq("id", task_id).execute().data
+    if task and task[0]["member_id"]:
+        notify(
+            db,
+            member_id=task[0]["member_id"],
+            actor_member_id=session["member_id"],
+            type="task_commented",
+            title=f"New comment: {task[0]['title']}",
+            body=payload.body.strip(),
+            href="/tasks",
+        )
+
     return result
