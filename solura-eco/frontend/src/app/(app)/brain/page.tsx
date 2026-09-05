@@ -2,6 +2,7 @@
 import { cookies } from "next/headers";
 
 import { BrainBrowser } from "@/components/BrainBrowser";
+import { NewPageDialog } from "@/components/NewPageDialog";
 
 type WikiPage = {
   id: string;
@@ -36,10 +37,15 @@ export default async function BrainPage() {
 
   return (
     <div className="px-8 py-8 animate-fade-in-up">
-      <h1 className="mb-1 font-display text-2xl font-extrabold tracking-tight text-white">Brain / Database</h1>
-      <p className="mb-5 text-sm text-silver">
-        Solura&apos;s real knowledge base — synced from the team&apos;s Obsidian Vault.
-      </p>
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="mb-1 font-display text-2xl font-extrabold tracking-tight text-white">Brain / Database</h1>
+          <p className="text-sm text-silver">
+            Solura&apos;s real knowledge base — synced from the team&apos;s Obsidian Vault, editable here too.
+          </p>
+        </div>
+        <NewPageDialog />
+      </div>
 
       <BrainBrowser pages={pages} graphNodes={graph.nodes} graphEdges={graph.edges} />
     </div>

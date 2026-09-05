@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { marked } from "marked";
 
+import { PageEditPanel } from "@/components/PageEditPanel";
+
 type WikiPageDetail = {
   id: string;
   path: string;
@@ -54,11 +56,25 @@ export default async function BrainDetailPage({ params }: { params: Promise<{ id
         ← Brain / Database
       </Link>
 
-      <div className="mb-1 flex items-center gap-2">
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{page.title}</h1>
-        {page.tier === "core" && (
-          <span className="shrink-0 rounded-full bg-cyan/15 px-2 py-0.5 text-[10px] font-bold text-cyan">core</span>
-        )}
+      <div className="mb-1 flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{page.title}</h1>
+          {page.tier === "core" && (
+            <span className="shrink-0 rounded-full bg-cyan/15 px-2 py-0.5 text-[10px] font-bold text-cyan">core</span>
+          )}
+        </div>
+        <PageEditPanel
+          pageId={page.id}
+          isPlatformPage={page.path.startsWith("platform/")}
+          initial={{
+            title: page.title,
+            category: page.category,
+            tags: page.tags,
+            summary: page.summary,
+            tier: page.tier,
+            body_markdown: page.body_markdown,
+          }}
+        />
       </div>
       <p className="mb-1 text-xs text-silver-dim">
         {page.path}
