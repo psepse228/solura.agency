@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { SignOutButton } from "@/components/SignOutButton";
 import { UrgentPanel, type UrgentData } from "@/components/UrgentPanel";
 
@@ -39,6 +40,8 @@ export function Sidebar({ username, urgent }: { username: string; urgent: Urgent
         </div>
         <span className="font-display text-base font-extrabold tracking-tight">Solura Eco</span>
       </Link>
+
+      <GlobalSearch />
 
       <nav className="flex flex-col gap-0.5">
         {NAV_ITEMS.map((item) => {

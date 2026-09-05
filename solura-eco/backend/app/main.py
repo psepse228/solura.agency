@@ -18,6 +18,7 @@ from app.routers import (
     me,
     members,
     projects,
+    search,
     tasks,
     telegram_business,
     webhooks,
@@ -39,6 +40,7 @@ app.include_router(me.router, prefix="/me", tags=["me"])
 app.include_router(canvas.router, prefix="/canvas", tags=["canvas"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 app.include_router(leads.router, prefix="/leads", tags=["leads"])
+app.include_router(search.router, prefix="/search", tags=["search"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])
 app.include_router(members.router, prefix="/members", tags=["members"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
