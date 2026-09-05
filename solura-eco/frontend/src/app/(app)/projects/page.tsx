@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import { NewProjectDialog } from "@/components/NewProjectDialog";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StatusPill } from "@/components/StatusPill";
 
@@ -72,10 +73,15 @@ export default async function ProjectsPage() {
 
   return (
     <div className="px-8 py-8 animate-fade-in-up">
-      <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">Projects</h1>
-      <p className="mt-1 text-sm text-silver">
-        Every project Solura&apos;s running, at a glance — click one for the full picture.
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">Projects</h1>
+          <p className="mt-1 text-sm text-silver">
+            Every project Solura&apos;s running, at a glance — click one for the full picture.
+          </p>
+        </div>
+        <NewProjectDialog />
+      </div>
 
       {!projects || !stats ? (
         <div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">

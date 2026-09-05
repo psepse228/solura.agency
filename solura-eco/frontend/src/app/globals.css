@@ -75,4 +75,10 @@ h1, h2, h3, h4 {
   .panel {
     @apply rounded-2xl border border-border bg-bg2 p-4;
   }
+  .field {
+    @apply w-full rounded-lg border border-border bg-transparent px-3 py-1.5 text-xs text-white outline-none focus:border-cyan;
+  }
+  .field-label {
+    @apply mb-3 block text-xs text-silver;
+  }
 }

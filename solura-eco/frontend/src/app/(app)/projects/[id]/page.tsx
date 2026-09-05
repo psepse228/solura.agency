@@ -7,6 +7,7 @@ import { ClientsPanel } from "@/components/ClientsPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { NotesPanel } from "@/components/NotesPanel";
 import { ProgressBar } from "@/components/ProgressBar";
+import { ProjectEditPanel } from "@/components/ProjectEditPanel";
 import { RolesEditor } from "@/components/RolesEditor";
 
 type Member = { id: string; full_name: string };
@@ -27,6 +28,7 @@ type ProjectDetail = {
   status: string;
   progress: number;
   github_repo: string | null;
+  vercel_project: string | null;
   accent_start: string | null;
   accent_end: string | null;
   notes: string | null;
@@ -106,30 +108,45 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         ← All projects
       </Link>
 
-      <div className="mb-6 flex items-start gap-3.5">
-        <div className="h-11 w-11 shrink-0 rounded-xl" style={{ backgroundImage: gradient }} />
-        <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{project.name}</h1>
-          <div className="mt-1 flex items-center gap-2 text-sm text-silver">
-            <span>
-              {project.clients.length === 0
-                ? "No clients yet"
-                : `${project.clients.length} ${project.clients.length === 1 ? "client" : "clients"}`}
-            </span>
-            {project.github_repo && (
-              <>
-                <span>·</span>
-                <a
-                  href={`https://github.com/${project.github_repo}`}
-                  target="_blank"
-                  className="text-silver-dim hover:text-white"
-                >
-                  {project.github_repo} ↗
-                </a>
-              </>
-            )}
+      <div className="mb-6 flex items-start justify-between gap-3.5">
+        <div className="flex items-start gap-3.5">
+          <div className="h-11 w-11 shrink-0 rounded-xl" style={{ backgroundImage: gradient }} />
+          <div>
+            <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{project.name}</h1>
+            <div className="mt-1 flex items-center gap-2 text-sm text-silver">
+              <span>
+                {project.clients.length === 0
+                  ? "No clients yet"
+                  : `${project.clients.length} ${project.clients.length === 1 ? "client" : "clients"}`}
+              </span>
+              {project.github_repo && (
+                <>
+                  <span>·</span>
+                  <a
+                    href={`https://github.com/${project.github_repo}`}
+                    target="_blank"
+                    className="text-silver-dim hover:text-white"
+                  >
+                    {project.github_repo} ↗
+                  </a>
+                </>
+              )}
+            </div>
           </div>
         </div>
+        <ProjectEditPanel
+          projectId={project.id}
+          initial={{
+            name: project.name,
+            status: project.status,
+            progress: project.progress,
+            github_repo: project.github_repo,
+            vercel_project: project.vercel_project,
+            accent_start: project.accent_start,
+            accent_end: project.accent_end,
+            notes: project.notes,
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">

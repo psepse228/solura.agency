@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { ClientEditPanel } from "@/components/ClientEditPanel";
 import { DeleteClientButton } from "@/components/DeleteClientButton";
 import { NotesPanel } from "@/components/NotesPanel";
 import { StatusPill } from "@/components/StatusPill";
@@ -61,7 +62,19 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{client.name}</h1>
           <StatusPill status={client.status} />
         </div>
-        <DeleteClientButton clientId={client.id} clientName={client.name} />
+        <div className="flex gap-2">
+          <ClientEditPanel
+            clientId={client.id}
+            initial={{
+              name: client.name,
+              status: client.status,
+              contact_name: client.contact_name,
+              contact_email: client.contact_email,
+              contact_phone: client.contact_phone,
+            }}
+          />
+          <DeleteClientButton clientId={client.id} clientName={client.name} />
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">

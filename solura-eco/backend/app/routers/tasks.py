@@ -29,6 +29,7 @@ class TaskIn(BaseModel):
     member_id: Optional[str] = None
     priority: str = "normal"
     due_at: Optional[str] = None
+    parent_task_id: Optional[str] = None
 
 
 class TaskUpdate(BaseModel):
@@ -39,16 +40,21 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     priority: Optional[str] = None
     due_at: Optional[str] = None
+    parent_task_id: Optional[str] = None
 
 
 @router.get("")
 async def list_tasks(_: dict = Depends(require_session)):
     """Every open-or-recent task, not filtered by member -- a shared
-    board, same visibility model as the rest of this app."""
+    board, same visibility model as the rest of this app. Subtasks are
+    returned flat alongside their parents (parent_task_id ties them
+    together) -- the frontend nests them for the board/list views."""
     db = get_client()
     return (
         db.table("work_tasks")
-        .select("id,title,description,client_name,status,priority,due_at,member_id,members(full_name)")
+        .select(
+            "id,title,description,client_name,status,priority,due_at,member_id,parent_task_id,members(full_name)"
+        )
         .order("due_at", desc=False, nullsfirst=False)
         .execute()
         .data
@@ -61,6 +67,23 @@ async def create_task(payload: TaskIn, _: dict = Depends(require_session)):
         raise HTTPException(status_code=400, detail=f"priority must be one of: {', '.join(PRIORITIES)}")
 
     db = get_client()
+
+    if payload.parent_task_id:
+        # Keep the hierarchy exactly one level deep -- a subtask of a
+        # subtask would need real tree UI, not just a board with a
+        # nested list, and nobody's asked for that yet.
+        parent = (
+            db.table("work_tasks")
+            .select("parent_task_id")
+            .eq("id", payload.parent_task_id)
+            .execute()
+            .data
+        )
+        if not parent:
+            raise HTTPException(status_code=400, detail="Parent task not found")
+        if parent[0]["parent_task_id"]:
+            raise HTTPException(status_code=400, detail="A subtask can't itself have subtasks")
+
     row = payload.model_dump(exclude_none=True)
     result = (
         db.table("work_tasks")
@@ -83,6 +106,22 @@ async def update_task(task_id: str, payload: TaskUpdate, _: dict = Depends(requi
         raise HTTPException(status_code=400, detail=f"priority must be one of: {', '.join(PRIORITIES)}")
 
     db = get_client()
+
+    if updates.get("parent_task_id") == task_id:
+        raise HTTPException(status_code=400, detail="A task can't be its own parent")
+    if "parent_task_id" in updates and updates["parent_task_id"]:
+        parent = (
+            db.table("work_tasks")
+            .select("parent_task_id")
+            .eq("id", updates["parent_task_id"])
+            .execute()
+            .data
+        )
+        if not parent:
+            raise HTTPException(status_code=400, detail="Parent task not found")
+        if parent[0]["parent_task_id"]:
+            raise HTTPException(status_code=400, detail="A subtask can't itself have subtasks")
+
     result = db.table("work_tasks").update(updates).eq("id", task_id).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Task not found")

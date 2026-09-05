@@ -12,6 +12,7 @@ type Task = {
   priority: "low" | "normal" | "high";
   due_at: string | null;
   member_id: string | null;
+  parent_task_id: string | null;
   members: { full_name: string } | null;
 };
 

@@ -145,7 +145,7 @@ async def get_project(project_id: str, _: dict = Depends(require_session)):
     db = get_client()
     result = (
         db.table("projects")
-        .select("id,name,status,progress,github_repo,accent_start,accent_end,notes")
+        .select("id,name,status,progress,github_repo,vercel_project,accent_start,accent_end,notes")
         .eq("id", project_id)
         .execute()
         .data
