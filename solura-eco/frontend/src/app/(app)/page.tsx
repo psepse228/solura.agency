@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { MyDayPanel } from "@/components/MyDayPanel";
+import { TeamSummaryPanel } from "@/components/TeamSummaryPanel";
 
 async function fetchJSON<T>(path: string, token: string | undefined): Promise<T | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -76,6 +77,10 @@ export default async function WelcomePage() {
       </p>
 
       <div className="mt-6">
+        <TeamSummaryPanel />
+      </div>
+
+      <div className="mt-4">
         <MyDayPanel tasks={myDay?.tasks ?? []} canvasDeadlines={myDay?.canvas_deadlines ?? []} />
       </div>
 

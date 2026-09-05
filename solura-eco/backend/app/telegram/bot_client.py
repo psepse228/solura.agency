@@ -1,8 +1,6 @@
-"""Thin HTTP client for the plain Telegram Bot API -- sending as the bot's
-own identity (@<TELEGRAM_BOT_USERNAME>), not through a business connection.
-Ported from Argus's app/telegram/bot_client.py::send_bot_message. Used only
-by the group-chat assistant (app/ai/assistant.py) -- the business-message
-monitoring path (telegram_business.py) never sends anything back, by design.
+"""Thin HTTP client for the Telegram Bot API's two distinct send paths --
+neither talks to Supabase or GPT, just Telegram over HTTP. Ported from
+Argus's app/telegram/bot_client.py.
 """
 import logging
 import os
@@ -19,6 +17,27 @@ class TelegramSendError(Exception):
     timeout, connection error) -- distinct from a plain unhandled exception
     so callers can log/skip instead of raising a raw exception out of a
     webhook handler that Telegram would just retry."""
+
+
+def send_message(business_connection_id: str, chat_id: int, text: str) -> dict:
+    """Sends as the connected business account, not as the bot itself --
+    business_connection_id is what makes the reply land in the team's own
+    Telegram Business chat with the client, not from some generic bot.
+    Always human-initiated (typed and clicked Send in the platform's own
+    reply box) -- never called automatically, the AI summary/next-step is
+    a suggestion to read, not a draft that sends itself."""
+    token = os.environ["TELEGRAM_BOT_TOKEN"]
+    try:
+        resp = httpx.post(
+            f"{TELEGRAM_API_BASE}/bot{token}/sendMessage",
+            json={"business_connection_id": business_connection_id, "chat_id": chat_id, "text": text},
+            timeout=10.0,
+        )
+        resp.raise_for_status()
+    except httpx.HTTPError as e:
+        logger.exception("Telegram sendMessage (business) call failed")
+        raise TelegramSendError(str(e)) from e
+    return resp.json()
 
 
 def send_bot_message(chat_id: int, text: str, reply_to_message_id: int | None = None) -> dict:

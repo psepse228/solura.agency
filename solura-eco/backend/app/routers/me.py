@@ -5,8 +5,9 @@ docs/superpowers/specs/2026-09-04-urgent-panel-design.md.
 """
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.ai.digest import generate_digest
 from app.auth.deps import require_session
 from app.services.dev_activity import get_last_activity_by_project
 from app.services.staleness import days_since_activity, is_stale
@@ -305,3 +306,16 @@ async def my_day(session: dict = Depends(require_session)):
         "tasks": _my_tasks(db, session["member_id"]),
         "canvas_deadlines": _canvas_deadlines(db, session["member_id"], now),
     }
+
+
+@router.post("/summary")
+async def team_summary(_: dict = Depends(require_session)):
+    """AI сводка -- generated fresh on every call (a POST, not cached
+    behind a GET, so no proxy/browser mistakes this for something safe
+    to reuse). Team-wide, not per-member -- same platform snapshot
+    everyone sees on the home page."""
+    db = get_client()
+    digest = generate_digest(db)
+    if digest is None:
+        raise HTTPException(status_code=503, detail="Couldn't generate a summary right now")
+    return digest

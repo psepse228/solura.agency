@@ -1,9 +1,14 @@
 // solura-eco/frontend/src/components/TelegramThread.tsx
-// The actual Telegram message thread on a client's/lead's own page --
-// previously only the AI-generated summary showed up (as a note), the
-// raw conversation was invisible. Read-only: this integration monitors,
-// it never sends a reply from here (the Solura Assistant is separate,
-// lives in the group chat, and doesn't post into a specific thread).
+// The actual Telegram message thread on a client's/lead's own page, with
+// a real reply box -- typing here and clicking Send posts as the team's
+// connected Telegram Business account, landing in the client's own chat.
+// Always a human decision: nothing here drafts or sends on its own, the
+// AI summary/next-step below is a suggestion to read, not a queued reply.
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
+
 type Message = { id: string; direction: "inbound" | "outbound"; content: string; created_at: string };
 type Conversation = {
   id: string;
@@ -17,6 +22,12 @@ type Conversation = {
 type Thread = { conversation: Conversation; messages: Message[] } | null;
 
 export function TelegramThread({ thread }: { thread: Thread }) {
+  const router = useRouter();
+  const [messages, setMessages] = useState(thread?.messages ?? []);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   if (!thread) {
     return (
       <div className="panel">
@@ -26,7 +37,33 @@ export function TelegramThread({ thread }: { thread: Thread }) {
     );
   }
 
-  const { conversation, messages } = thread;
+  const { conversation } = thread;
+
+  async function handleSend(e: FormEvent) {
+    e.preventDefault();
+    const body = text.trim();
+    if (!body || sending) return;
+
+    setSending(true);
+    setError(null);
+    const res = await fetch(`/api/telegram/conversations/${conversation.id}/reply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: body }),
+    });
+    setSending(false);
+
+    if (!res.ok) {
+      const resBody = await res.json().catch(() => ({}));
+      setError(resBody.error ?? "Couldn't send");
+      return;
+    }
+
+    const sent = (await res.json()) as Message;
+    setMessages((prev) => [...prev, sent]);
+    setText("");
+    router.refresh();
+  }
 
   return (
     <div className="panel">
@@ -71,6 +108,21 @@ export function TelegramThread({ thread }: { thread: Thread }) {
           ))
         )}
       </div>
+
+      <form onSubmit={handleSend} className="mt-3 flex flex-col gap-2 border-t border-white/5 pt-3">
+        <textarea
+          className="field"
+          rows={2}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Reply as the connected Telegram Business account…"
+          disabled={sending}
+        />
+        {error && <p className="text-[11px] text-red-400">{error}</p>}
+        <button type="submit" disabled={!text.trim() || sending} className="btn-primary self-end">
+          {sending ? "Sending…" : "Send"}
+        </button>
+      </form>
     </div>
   );
 }
