@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app.auth.deps import require_session
 from app.services.supabase_client import get_client
+from app.services.telegram_thread import get_conversation_thread
 
 router = APIRouter()
 
@@ -130,3 +131,12 @@ async def delete_lead(lead_id: str, _: dict = Depends(require_session)):
     if not result.data:
         raise HTTPException(status_code=404, detail="Lead not found")
     return {"ok": True}
+
+
+@router.get("/{lead_id}/telegram")
+async def get_lead_telegram_thread(lead_id: str, _: dict = Depends(require_session)):
+    """Read-only -- the actual message thread that created this lead
+    (source='telegram' leads always have one), not just the AI summary
+    already appended to the lead's notes field."""
+    db = get_client()
+    return get_conversation_thread(db, lead_id=lead_id)

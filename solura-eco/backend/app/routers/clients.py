@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app.auth.deps import require_session
 from app.services.supabase_client import get_client
+from app.services.telegram_thread import get_conversation_thread
 
 router = APIRouter()
 
@@ -145,3 +146,12 @@ async def create_client_note(
     member = db.table("members").select("full_name").eq("id", session["member_id"]).execute().data
     result["author"] = member[0]["full_name"] if member else session["username"]
     return result
+
+
+@router.get("/{client_id}/telegram")
+async def get_client_telegram_thread(client_id: str, _: dict = Depends(require_session)):
+    """Read-only -- the actual message thread, not just the AI summary
+    already shown as a client note. Returns null if this client has never
+    messaged in over Telegram (not a 404 -- most clients never will)."""
+    db = get_client()
+    return get_conversation_thread(db, client_id=client_id)

@@ -7,6 +7,19 @@ import { ClientEditPanel } from "@/components/ClientEditPanel";
 import { DeleteClientButton } from "@/components/DeleteClientButton";
 import { NotesPanel } from "@/components/NotesPanel";
 import { StatusPill } from "@/components/StatusPill";
+import { TelegramThread } from "@/components/TelegramThread";
+
+type Message = { id: string; direction: "inbound" | "outbound"; content: string; created_at: string };
+type Conversation = {
+  id: string;
+  telegram_first_name: string | null;
+  telegram_username: string | null;
+  last_message_at: string | null;
+  summary: string | null;
+  next_step_suggestion: string | null;
+  summary_generated_at: string | null;
+};
+type Thread = { conversation: Conversation; messages: Message[] } | null;
 
 type Note = { id: string; body: string; author: string; created_at: string };
 type ClientDetail = {
@@ -44,10 +57,25 @@ async function getClientNotes(id: string, token: string | undefined): Promise<No
   return (await res.json()) as Note[];
 }
 
+async function getClientTelegramThread(id: string, token: string | undefined): Promise<Thread> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) return null;
+  const res = await fetch(`${apiUrl}/clients/${id}/telegram`, {
+    cache: "no-store",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as Thread;
+}
+
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const token = (await cookies()).get("session")?.value;
-  const [client, notes] = await Promise.all([getClient(id, token), getClientNotes(id, token)]);
+  const [client, notes, telegramThread] = await Promise.all([
+    getClient(id, token),
+    getClientNotes(id, token),
+    getClientTelegramThread(id, token),
+  ]);
 
   if (!client) notFound();
 
@@ -96,6 +124,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
         )}
+
+        {telegramThread && <TelegramThread thread={telegramThread} />}
 
         <NotesPanel apiPath={`/api/clients/${client.id}/notes`} initialNotes={notes ?? []} />
       </div>
