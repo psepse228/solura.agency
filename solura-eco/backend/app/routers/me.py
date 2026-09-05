@@ -245,3 +245,56 @@ async def urgent(session: dict = Depends(require_session)):
         "stale_projects": _stale_projects(db, now),
         "client_messages": _client_messages(db, now),
     }
+
+
+def _my_tasks(db, member_id: str) -> list[dict]:
+    """This member's own open major tasks, each with its subtask
+    checklist rolled up into a done/total count -- a personal work queue
+    instead of the whole shared board."""
+    major = (
+        db.table("work_tasks")
+        .select("id,title,status,priority,due_at,client_name")
+        .eq("member_id", member_id)
+        .neq("status", "done")
+        .is_("parent_task_id", "null")
+        .order("due_at", desc=False, nullsfirst=False)
+        .execute()
+        .data
+    )
+    if not major:
+        return []
+
+    task_ids = [t["id"] for t in major]
+    subtasks = (
+        db.table("work_tasks")
+        .select("id,status,parent_task_id")
+        .in_("parent_task_id", task_ids)
+        .execute()
+        .data
+    )
+    counts: dict = {}
+    for s in subtasks:
+        entry = counts.setdefault(s["parent_task_id"], {"done": 0, "total": 0})
+        entry["total"] += 1
+        if s["status"] == "done":
+            entry["done"] += 1
+
+    for t in major:
+        entry = counts.get(t["id"], {"done": 0, "total": 0})
+        t["subtasks_done"] = entry["done"]
+        t["subtasks_total"] = entry["total"]
+
+    return major
+
+
+@router.get("/day")
+async def my_day(session: dict = Depends(require_session)):
+    """The personal landing view -- what this member should actually be
+    doing today, not the whole team's activity. Separate from /urgent
+    (team-wide alerts) and /activity (team-wide feed)."""
+    db = get_client()
+    now = datetime.now(timezone.utc)
+    return {
+        "tasks": _my_tasks(db, session["member_id"]),
+        "canvas_deadlines": _canvas_deadlines(db, session["member_id"], now),
+    }

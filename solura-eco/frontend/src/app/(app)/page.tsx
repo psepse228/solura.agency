@@ -5,6 +5,7 @@
 import { cookies } from "next/headers";
 
 import { ActivityFeed } from "@/components/ActivityFeed";
+import { MyDayPanel } from "@/components/MyDayPanel";
 
 async function fetchJSON<T>(path: string, token: string | undefined): Promise<T | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -32,14 +33,35 @@ type ActivityItem = {
   href: string | null;
   at: string;
 };
+type MyDay = {
+  tasks: {
+    id: string;
+    title: string;
+    status: string;
+    priority: "low" | "normal" | "high";
+    due_at: string | null;
+    client_name: string | null;
+    subtasks_done: number;
+    subtasks_total: number;
+  }[];
+  canvas_deadlines: {
+    id: string;
+    name: string;
+    course_name: string | null;
+    due_at: string;
+    html_url: string | null;
+    overdue: boolean;
+  }[];
+};
 
 export default async function WelcomePage() {
   const token = (await cookies()).get("session")?.value;
-  const [stats, tasks, clients, activity] = await Promise.all([
+  const [stats, tasks, clients, activity, myDay] = await Promise.all([
     fetchJSON<Stats>("/projects/stats", token),
     fetchJSON<Task[]>("/tasks", token),
     fetchJSON<Client[]>("/clients", token),
     fetchJSON<ActivityItem[]>("/me/activity", token),
+    fetchJSON<MyDay>("/me/day", token),
   ]);
 
   const openTasks = (tasks ?? []).filter((t) => t.status !== "done").length;
@@ -52,6 +74,10 @@ export default async function WelcomePage() {
         {tasks ? openTasks : "—"} open {openTasks === 1 ? "task" : "tasks"} ·{" "}
         {clients ? clients.length : "—"} {clients?.length === 1 ? "client" : "clients"}
       </p>
+
+      <div className="mt-6">
+        <MyDayPanel tasks={myDay?.tasks ?? []} canvasDeadlines={myDay?.canvas_deadlines ?? []} />
+      </div>
 
       <div className="mt-6 mb-3 text-xs font-bold uppercase tracking-wide text-silver-dim">Recent activity</div>
       <ActivityFeed items={activity ?? []} />
