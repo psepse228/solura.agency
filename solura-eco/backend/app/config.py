@@ -26,6 +26,8 @@ class Settings:
 
     session_secret: str = os.getenv("SESSION_SECRET", "")
     github_webhook_secret: str = os.getenv("GITHUB_WEBHOOK_SECRET", "")
+    vercel_webhook_secret: str = os.getenv("VERCEL_WEBHOOK_SECRET", "")
+    railway_webhook_secret: str = os.getenv("RAILWAY_WEBHOOK_SECRET", "")
 
 
 settings = Settings()
