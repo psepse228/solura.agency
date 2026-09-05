@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type DragEvent, type FormEvent } from "react";
 
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
@@ -19,6 +19,7 @@ type Task = {
   members: { full_name: string } | null;
 };
 
+const STATUSES: Task["status"][] = ["todo", "in_progress", "blocked", "done"];
 const STATUS_LABELS: Record<Task["status"], string> = {
   todo: "To do",
   in_progress: "In progress",
@@ -42,8 +43,45 @@ function formatDue(iso: string | null): string | null {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function TaskCard({
+  task,
+  draggable,
+  onDragStart,
+  onDelete,
+}: {
+  task: Task;
+  draggable: boolean;
+  onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div
+      draggable={draggable}
+      onDragStart={onDragStart}
+      className={`rounded-lg border border-border bg-bg2 px-3 py-2.5 ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
+    >
+      <div className="flex items-start gap-2">
+        <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${PRIORITY_DOT[task.priority]}`} title={`${task.priority} priority`} />
+        <div className="min-w-0 flex-1">
+          <div className={`text-[13px] font-medium ${task.status === "done" ? "text-silver-dim line-through" : "text-white"}`}>
+            {task.title}
+          </div>
+          <div className="mt-0.5 text-[10.5px] text-silver-dim">
+            {task.client_name ?? "No client"} · {task.members?.full_name ?? "Unassigned"}
+            {formatDue(task.due_at) && ` · due ${formatDue(task.due_at)}`}
+          </div>
+        </div>
+        <button onClick={onDelete} className="shrink-0 text-[10px] text-silver-dim hover:text-red-400">
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
   const router = useRouter();
+  const [view, setView] = useState<"board" | "list">("board");
   const [tasks, setTasks] = useState(initialTasks);
   const [members, setMembers] = useState<Member[]>([]);
   const [title, setTitle] = useState("");
@@ -54,6 +92,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Task | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<Task["status"] | null>(null);
 
   useEffect(() => {
     fetch("/api/members")
@@ -121,6 +160,13 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
       setTasks(tasks.filter((t) => t.id !== target.id));
       router.refresh();
     }
+  }
+
+  function handleDrop(e: DragEvent<HTMLDivElement>, status: Task["status"]) {
+    e.preventDefault();
+    setDragOverColumn(null);
+    const taskId = e.dataTransfer.getData("text/plain");
+    if (taskId) updateStatus(taskId, status);
   }
 
   return (
@@ -197,9 +243,66 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
       </form>
       {error && <p className="text-[11px] text-red-400">{error}</p>}
 
+      <div className="flex gap-1 self-start rounded-lg border border-border p-0.5">
+        {(["board", "list"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold capitalize transition-colors ${
+              view === v ? "bg-bg3 text-white" : "text-silver-dim hover:text-white"
+            }`}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
       {tasks.length === 0 ? (
         <div className="rounded-2xl border border-border bg-bg2 p-8 text-center">
           <p className="text-sm text-silver">No tasks yet — add the first one above.</p>
+        </div>
+      ) : view === "board" ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {STATUSES.map((status) => {
+            const columnTasks = tasks.filter((t) => t.status === status);
+            return (
+              <div
+                key={status}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverColumn(status);
+                }}
+                onDragLeave={() => setDragOverColumn(null)}
+                onDrop={(e) => handleDrop(e, status)}
+                className={`flex flex-col gap-2 rounded-2xl border p-2.5 transition-colors ${
+                  dragOverColumn === status ? "border-cyan/50 bg-cyan/5" : "border-border bg-bg2/40"
+                }`}
+              >
+                <div className="flex items-center justify-between px-1 pt-0.5">
+                  <div className="text-[10.5px] font-bold uppercase tracking-wide text-silver-dim">
+                    {STATUS_LABELS[status]}
+                  </div>
+                  <div className="text-[10.5px] text-silver-dim">{columnTasks.length}</div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {columnTasks.map((t) => (
+                    <TaskCard
+                      key={t.id}
+                      task={t}
+                      draggable
+                      onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}
+                      onDelete={() => setPendingDelete(t)}
+                    />
+                  ))}
+                  {columnTasks.length === 0 && (
+                    <div className="rounded-lg border border-dashed border-border py-4 text-center text-[11px] text-silver-dim">
+                      Drop here
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -223,7 +326,7 @@ export function TaskBoard({ initialTasks }: { initialTasks: Task[] }) {
                 onChange={(e) => updateStatus(t.id, e.target.value as Task["status"])}
                 className="shrink-0 rounded-lg border border-border bg-bg3 px-2 py-1 text-[11px] text-white"
               >
-                {(Object.keys(STATUS_LABELS) as Task["status"][]).map((s) => (
+                {STATUSES.map((s) => (
                   <option key={s} value={s} className="bg-bg2">
                     {STATUS_LABELS[s]}
                   </option>
