@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/SignOutButton";
 import { UrgentPanel, type UrgentData } from "@/components/UrgentPanel";
 
-// "Projects" and "Uni load" are the only live routes this pass -- the rest
-// are the real, named upcoming build-order sections (architecture.md),
-// rendered as visible-but-inert so the platform's intended shape is honest,
-// not decorative filler.
+// "Projects", "Tasks", and "Uni load" are the only live routes this pass --
+// the rest are the real, named upcoming build-order sections
+// (architecture.md), rendered as visible-but-inert so the platform's
+// intended shape is honest, not decorative filler.
 const NAV_ITEMS = [
   { href: "/", label: "Projects", live: true },
+  { href: "/tasks", label: "Tasks", live: true },
   { href: "/clients", label: "Clients", live: false },
   { href: "/uni-load", label: "Uni load", live: true },
   { href: "/docs", label: "Docs & КП", live: false },
