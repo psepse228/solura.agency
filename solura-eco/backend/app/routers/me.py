@@ -132,6 +132,110 @@ def _client_messages(db, now: datetime) -> list[dict]:
     return out
 
 
+MAX_ACTIVITY_ITEMS = 30
+
+
+def _recent_activity(db, now: datetime) -> list[dict]:
+    """One merged feed across every real event source in the app --
+    commits/deploys, new tasks, new clients, new documents -- so the home
+    page shows a real activity stream instead of static stat tiles that
+    look empty with today's data volume. Team-wide, not per-member."""
+    items: list[dict] = []
+
+    events = (
+        db.table("dev_events")
+        .select("id,project_id,source,actor,message,url,occurred_at,projects(name)")
+        .order("occurred_at", desc=True)
+        .limit(MAX_ACTIVITY_ITEMS)
+        .execute()
+        .data
+    )
+    for e in events:
+        project = e.get("projects") or {}
+        items.append(
+            {
+                "type": "dev_event",
+                "id": e["id"],
+                "label": e["message"],
+                "sub": f"{project.get('name') or 'Unknown project'}" + (f" · {e['actor']}" if e.get("actor") else ""),
+                "href": e.get("url"),
+                "at": e["occurred_at"],
+            }
+        )
+
+    tasks = (
+        db.table("work_tasks")
+        .select("id,title,client_name,created_at")
+        .order("created_at", desc=True)
+        .limit(MAX_ACTIVITY_ITEMS)
+        .execute()
+        .data
+    )
+    for t in tasks:
+        items.append(
+            {
+                "type": "task",
+                "id": t["id"],
+                "label": f"New task: {t['title']}",
+                "sub": t.get("client_name") or "No client",
+                "href": "/tasks",
+                "at": t["created_at"],
+            }
+        )
+
+    clients = (
+        db.table("clients")
+        .select("id,name,created_at,projects(id,name)")
+        .order("created_at", desc=True)
+        .limit(MAX_ACTIVITY_ITEMS)
+        .execute()
+        .data
+    )
+    for c in clients:
+        project = c.get("projects") or {}
+        items.append(
+            {
+                "type": "client",
+                "id": c["id"],
+                "label": f"New client: {c['name']}",
+                "sub": project.get("name") or "Unknown platform",
+                "href": f"/clients/{c['id']}",
+                "at": c["created_at"],
+            }
+        )
+
+    documents = (
+        db.table("documents")
+        .select("id,filename,project_id,created_at,projects(name)")
+        .order("created_at", desc=True)
+        .limit(MAX_ACTIVITY_ITEMS)
+        .execute()
+        .data
+    )
+    for d in documents:
+        project = d.get("projects") or {}
+        items.append(
+            {
+                "type": "document",
+                "id": d["id"],
+                "label": f"Uploaded: {d['filename']}",
+                "sub": project.get("name") or "Unknown project",
+                "href": f"/projects/{d['project_id']}",
+                "at": d["created_at"],
+            }
+        )
+
+    items.sort(key=lambda x: x["at"], reverse=True)
+    return items[:MAX_ACTIVITY_ITEMS]
+
+
+@router.get("/activity")
+async def activity(_: dict = Depends(require_session)):
+    db = get_client()
+    now = datetime.now(timezone.utc)
+    return _recent_activity(db, now)
+
+
 @router.get("/urgent")
 async def urgent(session: dict = Depends(require_session)):
     db = get_client()
