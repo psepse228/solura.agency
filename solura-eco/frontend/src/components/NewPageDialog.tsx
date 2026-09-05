@@ -88,7 +88,7 @@ export function NewPageDialog() {
               onChange={(e) => setCategory(e.target.value as typeof category)}
             >
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
+                <option key={c} value={c} className="bg-bg2">
                   {c}
                 </option>
               ))}

@@ -93,7 +93,7 @@ export function NewProjectDialog() {
             <span className="field-label">Status</span>
             <select className="field" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
               {STATUSES.map((s) => (
-                <option key={s} value={s}>
+                <option key={s} value={s} className="bg-bg2">
                   {s}
                 </option>
               ))}

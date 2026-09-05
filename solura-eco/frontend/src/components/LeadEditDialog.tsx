@@ -143,7 +143,7 @@ export function LeadEditDialog({
             <span className="field-label">Status</span>
             <select className="field" value={status} onChange={(e) => setStatus(e.target.value as Lead["status"])}>
               {STATUSES.map((s) => (
-                <option key={s} value={s}>
+                <option key={s} value={s} className="bg-bg2">
                   {STATUS_LABELS[s]}
                 </option>
               ))}
@@ -152,9 +152,11 @@ export function LeadEditDialog({
           <label>
             <span className="field-label">Owner</span>
             <select className="field" value={memberId} onChange={(e) => setMemberId(e.target.value)}>
-              <option value="">Unassigned</option>
+              <option value="" className="bg-bg2">
+                Unassigned
+              </option>
               {members.map((m) => (
-                <option key={m.id} value={m.id}>
+                <option key={m.id} value={m.id} className="bg-bg2">
                   {m.full_name}
                 </option>
               ))}
@@ -168,9 +170,11 @@ export function LeadEditDialog({
               Converted into project — creates the real client on save
             </span>
             <select className="field" value={convertedProjectId} onChange={(e) => setConvertedProjectId(e.target.value)}>
-              <option value="">— pick a project —</option>
+              <option value="" className="bg-bg2">
+                — pick a project —
+              </option>
               {projects.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option key={p.id} value={p.id} className="bg-bg2">
                   {p.name}
                 </option>
               ))}

@@ -22,7 +22,7 @@ async def login(payload: LoginRequest, response: Response):
     db = get_client()
     result = (
         db.table("members")
-        .select("id,username,password_hash")
+        .select("id,username,password_hash,access_enabled")
         # Case-insensitive on purpose -- usernames are stored lowercase,
         # but people naturally type "Rizo"/"RIZO" and an exact match was
         # producing a confusing "invalid credentials" for a right password
@@ -40,6 +40,9 @@ async def login(payload: LoginRequest, response: Response):
         payload.password, member["password_hash"]
     ):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not member.get("access_enabled", True):
+        raise HTTPException(status_code=403, detail="Access disabled")
 
     token = create_session_token(
         member_id=member["id"], username=member["username"], secret=settings.session_secret

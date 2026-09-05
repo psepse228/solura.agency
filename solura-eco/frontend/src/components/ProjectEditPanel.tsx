@@ -90,7 +90,7 @@ export function ProjectEditPanel({ projectId, initial }: Props) {
               <span className="field-label">Status</span>
               <select className="field" value={status} onChange={(e) => setStatus(e.target.value)}>
                 {STATUSES.map((s) => (
-                  <option key={s} value={s}>
+                  <option key={s} value={s} className="bg-bg2">
                     {s}
                   </option>
                 ))}

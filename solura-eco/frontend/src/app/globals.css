@@ -77,14 +77,19 @@ h1, h2, h3, h4 {
   }
   .field {
     @apply w-full rounded-lg border border-border bg-transparent px-3 py-1.5 text-xs text-white outline-none focus:border-cyan;
-    /* A <select>'s own text/background is easy to theme, but its native
-       popup option list is rendered by the browser/OS, outside our CSS --
-       without this, "text-white" here left every option white-on-white
-       (unreadable, caught live on the Leads owner picker). color-scheme
-       tells the browser to use its own dark UA styles for that popup
-       (and for <input type="date">/"color">'s native pickers too),
-       instead of annotating every single <option> with a background. */
+    /* color-scheme alone (the first attempt here) turned out NOT to be
+       reliable for a <select>'s native option popup on real Windows/
+       Chrome -- caught live twice, still white-on-white after that fix
+       shipped. Kept for <input type="date">/"color">'s native pickers,
+       which it does theme correctly, but every <option> under a .field
+       select must also set its own background/color explicitly (done
+       inline on each <option> below as the primary fix -- this rule is
+       the backstop for any that forget it). */
     color-scheme: dark;
+  }
+  .field option {
+    background-color: var(--bg2);
+    color: var(--white);
   }
   .field-label {
     @apply mb-3 block text-xs text-silver;

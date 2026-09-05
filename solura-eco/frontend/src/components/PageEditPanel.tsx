@@ -107,9 +107,11 @@ export function PageEditPanel({ pageId, isPlatformPage, initial }: Props) {
             <label>
               <span className="field-label">Category</span>
               <select className="field" value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="">—</option>
+                <option value="" className="bg-bg2">
+                  —
+                </option>
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
+                  <option key={c} value={c} className="bg-bg2">
                     {c}
                   </option>
                 ))}
@@ -119,7 +121,7 @@ export function PageEditPanel({ pageId, isPlatformPage, initial }: Props) {
               <span className="field-label">Tier</span>
               <select className="field" value={tier} onChange={(e) => setTier(e.target.value)}>
                 {TIERS.map((t) => (
-                  <option key={t} value={t}>
+                  <option key={t} value={t} className="bg-bg2">
                     {t || "—"}
                   </option>
                 ))}

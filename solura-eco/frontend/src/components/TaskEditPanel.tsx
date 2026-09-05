@@ -113,9 +113,11 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
             <label>
               <span className="field-label">Assign</span>
               <select className="field" value={memberId} onChange={(e) => setMemberId(e.target.value)}>
-                <option value="">Unassigned</option>
+                <option value="" className="bg-bg2">
+                  Unassigned
+                </option>
                 {members.map((m) => (
-                  <option key={m.id} value={m.id}>
+                  <option key={m.id} value={m.id} className="bg-bg2">
                     {m.full_name}
                   </option>
                 ))}
@@ -131,9 +133,15 @@ export function TaskEditPanel({ task, members }: { task: Task; members: Member[]
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Task["priority"])}
               >
-                <option value="low">Low</option>
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
+                <option value="low" className="bg-bg2">
+                  Low
+                </option>
+                <option value="normal" className="bg-bg2">
+                  Normal
+                </option>
+                <option value="high" className="bg-bg2">
+                  High
+                </option>
               </select>
             </label>
             <label>

@@ -7,6 +7,7 @@ from fastapi import HTTPException, Request
 
 from app.auth.session import verify_session_token
 from app.config import settings
+from app.services.supabase_client import get_client
 
 
 def require_session(request: Request) -> dict:
@@ -22,5 +23,14 @@ def require_session(request: Request) -> dict:
     payload = verify_session_token(token, settings.session_secret) if token else None
     if payload is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Session tokens are stateless (signed, up to 30 days old) -- a
+    # member disabled after their token was issued would otherwise keep
+    # full access until it expires. One extra lookup per request is the
+    # cost of a kill-switch actually working immediately.
+    db = get_client()
+    member = db.table("members").select("access_enabled").eq("id", payload["member_id"]).execute().data
+    if not member or not member[0]["access_enabled"]:
+        raise HTTPException(status_code=401, detail="Access disabled")
 
     return payload
