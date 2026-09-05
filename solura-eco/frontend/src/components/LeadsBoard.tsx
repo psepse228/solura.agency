@@ -19,6 +19,12 @@ import {
   type Project,
 } from "@/components/LeadEditDialog";
 
+// Converted/lost leads are done deals (won or not) -- once a lead
+// converts it lives on as a real client, and the board's real job is the
+// open funnel, not a growing pile of settled cases. Both stay one click
+// away via "All".
+const OPEN_STATUSES: Lead["status"][] = ["new", "contacted", "qualified"];
+
 function LeadCard({
   lead,
   draggable,
@@ -69,6 +75,7 @@ export function LeadsBoard({ initialLeads }: { initialLeads: Lead[] }) {
   const [editingForceStatus, setEditingForceStatus] = useState<Lead["status"] | undefined>(undefined);
   const [pendingDelete, setPendingDelete] = useState<Lead | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<Lead["status"] | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     fetch("/api/members")
@@ -182,13 +189,27 @@ export function LeadsBoard({ initialLeads }: { initialLeads: Lead[] }) {
       </form>
       {error && <p className="text-[11px] text-red-400">{error}</p>}
 
+      <div className="flex gap-1 self-start rounded-lg border border-border p-0.5">
+        {(["open", "all"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setShowArchived(v === "all")}
+            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold capitalize transition-colors ${
+              (v === "all") === showArchived ? "bg-bg3 text-white" : "text-silver-dim hover:text-white"
+            }`}
+          >
+            {v === "open" ? "Open pipeline" : "All"}
+          </button>
+        ))}
+      </div>
+
       {leads.length === 0 ? (
         <div className="rounded-2xl border border-border bg-bg2 p-8 text-center">
           <p className="text-sm text-silver">No leads yet — add the first one above.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {STATUSES.map((status) => {
+        <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${showArchived ? "lg:grid-cols-5" : "lg:grid-cols-3"}`}>
+          {(showArchived ? STATUSES : OPEN_STATUSES).map((status) => {
             const columnLeads = leads.filter((l) => l.status === status);
             return (
               <div
