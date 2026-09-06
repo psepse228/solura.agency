@@ -86,20 +86,28 @@ def gather_context(db) -> dict:
     }
 
 
-def answer_question(question: str, context: dict) -> str | None:
+def answer_question(question: str, context: dict, history: list[dict] | None = None) -> str | None:
     """Returns the assistant's plain-text reply, or None if OpenAI isn't
     configured or the call fails -- callers must treat this as
     best-effort (same contract as telegram/ai_summary.py's
-    summarize_conversation), never let a failed answer crash the webhook
-    that's asking."""
+    summarize_conversation), never let a failed answer crash the caller.
+
+    `history`: [{"role": "user"|"assistant", "content": str}, ...], oldest
+    first -- lets the floating widget (AssistantWidget.tsx) hold a real
+    back-and-forth instead of every message starting from zero. Not
+    persisted server-side; the frontend just replays what it already has
+    on each turn. The platform snapshot is still re-gathered fresh every
+    call (no caching), so a fact from 3 messages ago is never stale."""
     if not settings.openai_api_key:
         return None
 
     messages = [
         {"role": "system", "content": _SYSTEM_PROMPT},
         {"role": "user", "content": json.dumps(context, ensure_ascii=False, default=str)},
-        {"role": "user", "content": f"Question: {question}"},
     ]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": question})
     try:
         client = _get_client()
         resp = client.chat.completions.create(model="gpt-4o", messages=messages)

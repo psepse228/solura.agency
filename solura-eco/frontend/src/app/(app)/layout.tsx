@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { AssistantWidget } from "@/components/AssistantWidget";
 import { Sidebar } from "@/components/Sidebar";
 import type { UrgentData } from "@/components/UrgentPanel";
 import { verifySessionToken } from "@/lib/session";
@@ -43,6 +44,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-bg">
       <Sidebar username={session.username} urgent={urgent} />
       <main className="min-w-0 flex-1">{children}</main>
+      <AssistantWidget />
     </div>
   );
 }

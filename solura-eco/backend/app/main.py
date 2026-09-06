@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import (
+    assistant,
     auth,
     brain,
     canvas,
@@ -37,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(assistant.router, prefix="/assistant", tags=["assistant"])
 app.include_router(brain.router, prefix="/brain", tags=["brain"])
 app.include_router(me.router, prefix="/me", tags=["me"])
 app.include_router(canvas.router, prefix="/canvas", tags=["canvas"])
